@@ -1,6 +1,6 @@
 /* Modern LMS-style sidebar */
 .lesson-nav-sidebar {
-  width: 320px;
+  width: 300px;
   min-width: 280px;
   background: var(--neutral-0);
   border-right: 1px solid var(--neutral-200);
@@ -11,10 +11,13 @@
   position: sticky;
   top: 80px;
   max-height: calc(100vh - 120px);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--neutral-200);
 }
 
 .lesson-nav-sidebar__header {
-  padding: 1.75rem 1.5rem 1.25rem;
+  padding: 1.25rem 1.5rem 1rem;
   border-bottom: 1px solid var(--neutral-200);
   background: var(--neutral-0);
   position: sticky;
@@ -32,12 +35,12 @@
 
 .lesson-nav-sidebar__content {
   flex: 1;
-  padding: 1rem 0;
+  padding: 1rem 0.25rem 1.25rem;
   overflow-y: auto;
 }
 
 .lesson-nav-sidebar__module {
-  margin-bottom: 0.75rem;
+  margin: 0 0.5rem 1.25rem;
 }
 
 .lesson-nav-sidebar__module.has-active {
@@ -51,7 +54,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.25rem;
   background: none;
   border: none;
   text-align: left;
@@ -86,7 +89,7 @@
 }
 
 .lesson-nav-sidebar__module-title {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.5;
@@ -101,7 +104,7 @@
 }
 
 .lesson-nav-sidebar__module-progress {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-secondary);
   font-weight: 500;
   background: var(--neutral-100);
@@ -112,7 +115,7 @@
 .lesson-nav-sidebar__progress-bar {
   height: 4px;
   background: var(--neutral-100);
-  margin: 0 1.5rem 0.75rem;
+  margin: 0 1.25rem 0.75rem;
   border-radius: 2px;
   overflow: hidden;
 }
@@ -132,7 +135,7 @@
 }
 
 .lesson-nav-sidebar__lesson-item {
-  margin: 0;
+  margin: 0 0 0.5rem 0;
 }
 
 .lesson-nav-sidebar__lesson-link {
@@ -140,7 +143,7 @@
   display: flex;
   align-items: flex-start;
   gap: 0.875rem;
-  padding: 1rem 1.5rem 1rem 3rem;
+  padding: 0.9rem 1.25rem 0.9rem 2.5rem;
   background: none;
   border: none;
   text-align: left;
@@ -167,8 +170,8 @@
 
 .lesson-nav-sidebar__lesson-number {
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -198,7 +201,7 @@
 }
 
 .lesson-nav-sidebar__lesson-title {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--text-primary);
   line-height: 1.5;
   word-wrap: break-word;
@@ -211,7 +214,7 @@
 }
 
 .lesson-nav-sidebar__lesson-summary {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-secondary);
   line-height: 1.5;
   display: -webkit-box;

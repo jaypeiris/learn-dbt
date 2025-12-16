@@ -86,6 +86,7 @@ const DEFAULT_ROUTE: RouteId = 'learn'
 
 function parseHash(): RouteId {
   const hashValue = window.location.hash.replace('#', '').replace('/', '')
+  if (hashValue === 'learn') return 'learn'
   if (hashValue === 'paths') return 'paths'
   if (hashValue === 'practice') return 'practice'
   if (hashValue === 'mistakes') return 'mistakes'
