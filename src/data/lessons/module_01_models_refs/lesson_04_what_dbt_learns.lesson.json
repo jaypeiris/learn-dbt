@@ -1,0 +1,28 @@
+{
+  "id": "module-01-lesson-04-what-dbt-learns",
+  "title": "Lesson 4 - What dbt learns from your SQL",
+  "summary": "Inspect metadata to see how dbt understands models without running them.",
+  "description": "Compilation builds a manifest that records model names, referenced nodes, tags, and docs. dbt gains this context before a single query runs in your warehouse.",
+  "concept": "dbt understands structure before it touches data.",
+  "starterState": "Inspect metadata",
+  "revealSections": [
+    {
+      "title": "What dbt learned",
+      "body": "The manifest now shows customer_orders depending on two staging models with two downstream placeholders."
+    }
+  ],
+  "takeaway": "dbt understands structure before it touches data.",
+  "features": {
+    "showManifestExplorer": true
+  },
+  "models": [
+    {
+      "id": "module01_lesson04_model",
+      "title": "customer_orders",
+      "description": "Study the metadata, not the SQL changes.",
+      "editable": false,
+      "sql": "select *\nfrom {{ ref('stg_orders') }} o\njoin {{ ref('stg_customers') }} c\n  on o.customer_id = c.customer_id"
+    }
+  ],
+  "tasks": []
+}

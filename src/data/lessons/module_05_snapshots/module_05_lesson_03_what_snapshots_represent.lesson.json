@@ -1,0 +1,49 @@
+{
+  "id": "module-05-lesson-03-what-snapshots-represent",
+  "title": "Lesson 3 - What a snapshot represents",
+  "summary": "Add the missing valid_from column so the snapshot can remember time.",
+  "description": "A snapshot is useless if it does not stamp each row with the moment it was seen. Finish the SQL so dbt can store those timestamps.",
+  "concept": "This snapshot exists to remember what used to be true, and when.",
+  "starter_state": "No timestamp columns",
+  "hint": "Select something like `updated_at as dbt_valid_from` so dbt can time-stamp each record.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The snapshot now emits dbt_valid_from, so every stored row knows when it started being true."
+    },
+    {
+      "title": "What dbt learns",
+      "body": "dbt can now treat this node as history because it has both the value and the time context."
+    }
+  ],
+  "takeaway": "Snapshots only matter if they record when something was observed.",
+  "models": [
+    {
+      "id": "module05_lesson03_snap_customers",
+      "title": "snap_customers_status",
+      "description": "Editable snapshot that forgot to add the timestamp fields.",
+      "editable": true,
+      "variant": "snapshot",
+      "sql": "select\n  customer_id,\n  status\nfrom {{ ref('stg_customers') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module05_lesson03_add-valid-from",
+      "prompt": "Add a column that aliases `updated_at` (or similar) to `dbt_valid_from` so the snapshot can store time.",
+      "check": {
+        "type": "contains_text",
+        "value": "dbt_valid_from",
+        "hint": "Snapshots usually expose `dbt_valid_from` so downstream users know when a row became valid."
+      }
+    }
+  ],
+  "annotations": {
+    "snapshots": [
+      {
+        "label": "Remembered state",
+        "description": "Records when each version of the row was true."
+      }
+    ]
+  }
+}

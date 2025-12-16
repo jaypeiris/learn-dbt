@@ -1,0 +1,74 @@
+{
+  "id": "module-02-lesson-03-intermediate",
+  "title": "Lesson 3 — Intermediate models reduce cognitive load",
+  "summary": "The intermediate model still joins directly to raw customers.",
+  "description": "Intermediate layers keep analytic SQL approachable by separating cleaning from business logic. They often use window functions for enrichment, deduplication, and time-series calculations.",
+  "concept": "This helps keep logic simple: the intermediate step gathers everything in one place so the next model reads clearly.",
+  "starter_state": "Bypassing staging",
+  "hint": "Join both staging models: `{{ ref('stg_orders') }}` and `{{ ref('stg_customers') }}`.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The intermediate model now consumes both staging tables, not a mix of raw and staged data."
+    },
+    {
+      "title": "Why this matters",
+      "body": "Intermediate layers are readable when every upstream dependency is already cleaned."
+    },
+    {
+      "title": "Window functions in intermediate layers",
+      "body": "Intermediate models commonly use window functions: ROW_NUMBER() for deduplication (partition by key, order by timestamp), LAG/LEAD for time-series logic (previous/next values), and PARTITION BY for grouping calculations. These enrichments happen in intermediate layers so marts stay simple."
+    }
+  ],
+  "takeaway": "Intermediate models should only reference staging—no raw shortcuts.",
+  "models": [
+    {
+      "id": "module02_lesson03_stg_orders",
+      "title": "stg_orders",
+      "description": "Read-only staging view of orders.",
+      "editable": false,
+      "sql": "select order_id, order_date, customer_id\nfrom {{ source('raw', 'orders') }}"
+    },
+    {
+      "id": "module02_lesson03_stg_customers",
+      "title": "stg_customers",
+      "description": "Read-only staging view of customers.",
+      "editable": false,
+      "sql": "select customer_id, customer_name\nfrom {{ source('raw', 'customers') }}"
+    },
+    {
+      "id": "module02_lesson03_int_orders",
+      "title": "int_orders_joined",
+      "description": "Editable intermediate model that still points at raw customers.",
+      "editable": true,
+      "sql": "select\n  o.order_id,\n  o.order_date,\n  c.customer_name\nfrom {{ ref('stg_orders') }} o\njoin raw.customers c\n  on o.customer_id = c.customer_id"
+    },
+    {
+      "id": "module02_lesson03_window_examples",
+      "title": "Example: window functions in intermediate (context)",
+      "description": "Common patterns: ROW_NUMBER() for deduplication, LAG/LEAD for time-series, PARTITION BY for grouping.",
+      "editable": false,
+      "sql": "-- Deduplication: row_number() over (partition by customer_id order by created_at desc)\n-- Time-series: lag(order_total) over (partition by customer_id order by order_date)\n-- Grouping: sum(amount) over (partition by customer_id, order_date)"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module02_lesson03_ref_orders",
+      "prompt": "Reference stg_orders to represent the first dependency.",
+      "check": {
+        "type": "includes_ref",
+        "value": "stg_orders",
+        "hint": "The intermediate model pulls columns from stg_orders."
+      }
+    },
+    {
+      "id": "module02_lesson03_ref_customers",
+      "prompt": "Reference stg_customers to show the join.",
+      "check": {
+        "type": "includes_ref",
+        "value": "stg_customers",
+        "hint": "This model depends on both staging layers."
+      }
+    }
+  ]
+}

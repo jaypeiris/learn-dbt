@@ -1,0 +1,74 @@
+{
+  "id": "module-06-lesson-03-node-types",
+  "title": "Lesson 3 - How different objects appear to dbt",
+  "summary": "Attach tests and exposures so the manifest can show more than models.",
+  "description": "Our example manifest already contains models and a snapshot. Add the missing annotations to prove that tests and exposures live in the same graph.",
+  "concept": "dbt stores expectations and usage next to SQL, so the graph explains why each node matters.",
+  "starter_state": "Missing annotations",
+  "hint": "Add comment lines like `-- test:not_null customer_id` and `-- exposure:Sales Dashboard` near the top.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The manifest now lists tests and exposures alongside the model node."
+    },
+    {
+      "title": "Why this matters",
+      "body": "People can browse the graph to see not just data flow, but also meaning and usage."
+    }
+  ],
+  "takeaway": "Tests and exposures are first-class nodes in dbt’s internal graph.",
+  "models": [
+    {
+      "id": "module06_lesson03_snapshot_context",
+      "title": "snap_customers_status (context)",
+      "description": "Read-only snapshot already represented in the manifest.",
+      "editable": false,
+      "variant": "snapshot",
+      "sql": "select\n  customer_id,\n  status,\n  dbt_valid_from,\n  dbt_valid_to\nfrom {{ ref('dim_customers') }}"
+    },
+    {
+      "id": "module06_lesson03_dim_customers",
+      "title": "dim_customers_with_annotations",
+      "description": "Editable model missing its test and exposure markers.",
+      "editable": true,
+      "sql": "select\n  customer_id,\n  status_flag\nfrom {{ ref('stg_customers') }}\n-- TODO: declare the tests and exposures this model carries"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module06_lesson03_add-test",
+      "prompt": "Add a not null test declaration for `customer_id` (e.g., `-- test:not_null customer_id`).",
+      "check": {
+        "type": "contains_text",
+        "value": "test:not_null customer_id",
+        "hint": "Use a comment that starts with `-- test:` so it is easy to spot."
+      }
+    },
+    {
+      "id": "module06_lesson03_add-exposure",
+      "prompt": "Note that this model feeds the Sales Dashboard (e.g., `-- exposure:Sales Dashboard`).",
+      "check": {
+        "type": "contains_text",
+        "value": "exposure:Sales Dashboard",
+        "hint": "Add a comment with the exposure label so the manifest explorer can highlight it."
+      }
+    }
+  ],
+  "annotations": {
+    "tests": [
+      {
+        "label": "Test node",
+        "description": "Represents a question you ask about the data."
+      }
+    ],
+    "exposures": [
+      {
+        "label": "Exposure node",
+        "description": "Connects dbt outputs to downstream consumers."
+      }
+    ]
+  },
+  "features": {
+    "showManifestExplorer": true
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "module-01-lesson-01-models-are-sql",
+  "title": "Lesson 1 - A dbt model is just SQL",
+  "summary": "Start with plain SQL to prove models are regular queries.",
+  "description": "Before configs, refs, or manifests, a dbt model is literally a .sql file stored in your repo. dbt does not inject clauses or fix mistakes for you.",
+  "concept": "dbt's job is structure. Your job is writing valid SQL.",
+  "starterState": "Decision-first edit",
+  "takeaway": "dbt doesn't change SQL. It changes how SQL fits together.",
+  "models": [
+    {
+      "id": "module01_lesson01_orders",
+      "title": "orders.sql",
+      "description": "Edit freely to see how dbt treats raw SQL.",
+      "editable": true,
+      "sql": "select\n  order_id,\n  customer_id,\n  order_date\nfrom raw_orders"
+    }
+  ],
+  "tasks": []
+}

@@ -1,0 +1,52 @@
+{
+  "id": "layer-mastery",
+  "title": "Layer Structure",
+  "description": "Learn to organize models into the right layers (staging, intermediate, marts)",
+  "challenges": [
+    {
+      "id": "move-to-staging",
+      "type": "fix_layer",
+      "title": "This logic belongs in staging",
+      "difficulty": "beginner",
+      "timeEstimate": "5 min",
+      "description": "This model has business logic mixed with raw data cleanup. Staging should be boring.",
+      "scenario": "You're reviewing a staging model. It's doing too much—business logic sneaked in.",
+      "starterSql": "-- staging/stg_orders.sql\n-- Problem: Business logic in staging layer\n\nselect\n  order_id,\n  customer_id,\n  \n  -- Staging should just clean and rename, not calculate\n  case \n    when order_total > 1000 then 'high_value'\n    when order_total > 100 then 'medium_value'\n    else 'low_value'\n  end as customer_segment,\n  \n  -- This is fine - just renaming\n  order_date as ordered_at,\n  order_total as total_amount,\n  \n  -- More business logic that doesn't belong here\n  datediff(day, order_date, current_date) as days_since_order\n  \nfrom raw_data.orders",
+      "checks": [
+        {
+          "type": "contains_text",
+          "value": "-- clean column names only",
+          "hint": "Add a comment indicating this layer only cleans and renames"
+        }
+      ],
+      "explanation": "Staging models should be boring: select columns, rename them, cast types. Business logic (like segmentation and date calculations) belongs in intermediate or mart layers. This keeps staging models predictable and easy to maintain.",
+      "hint": "Remove the CASE statements and date calculations. Staging should only select, rename, and cast.",
+      "tags": ["staging", "layers", "architecture"]
+    },
+    {
+      "id": "create-intermediate",
+      "type": "fix_layer",
+      "title": "Extract to intermediate layer",
+      "difficulty": "intermediate",
+      "timeEstimate": "10 min",
+      "description": "This mart has complex logic that should live in an intermediate model",
+      "scenario": "A mart model is doing heavy lifting with CTEs. Extract the reusable logic to intermediate.",
+      "starterSql": "-- marts/mart_customer_metrics.sql\n-- This mart is doing too much work\n\nwith customer_orders as (\n  select\n    customer_id,\n    count(*) as order_count,\n    sum(order_total) as lifetime_value,\n    min(order_date) as first_order_date,\n    max(order_date) as last_order_date\n  from {{ ref('stg_orders') }}\n  group by customer_id\n),\n\ncustomer_support_tickets as (\n  select\n    customer_id,\n    count(*) as ticket_count,\n    avg(resolution_time_hours) as avg_resolution_hours\n  from {{ ref('stg_support_tickets') }}\n  group by customer_id\n),\n\nfinal as (\n  select\n    co.customer_id,\n    co.order_count,\n    co.lifetime_value,\n    cst.ticket_count,\n    cst.avg_resolution_hours,\n    -- Final business metric\n    co.lifetime_value / nullif(co.order_count, 0) as average_order_value\n  from customer_orders as co\n  left join customer_support_tickets as cst\n    on co.customer_id = cst.customer_id\n)\n\nselect * from final",
+      "checks": [
+        {
+          "type": "includes_ref",
+          "value": "int_customer_orders",
+          "hint": "Create an intermediate model for customer order aggregations"
+        },
+        {
+          "type": "includes_ref",
+          "value": "int_customer_support",
+          "hint": "Create an intermediate model for customer support metrics"
+        }
+      ],
+      "explanation": "The two CTEs (customer_orders and customer_support_tickets) are reusable business logic that other marts might need. By extracting them to intermediate models (int_customer_orders and int_customer_support), you make them discoverable and reusable. The mart becomes a simple join.",
+      "hint": "Replace the CTEs with ref() calls to int_customer_orders and int_customer_support",
+      "tags": ["intermediate", "layers", "refactoring", "reusability"]
+    }
+  ]
+}

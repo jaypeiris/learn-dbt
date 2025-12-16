@@ -1,0 +1,49 @@
+.build-order {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.build-order__step {
+  border-radius: 0.75rem;
+  padding: 0.6rem;
+  background: var(--neutral-0);
+  min-height: 80px;
+  border: 1px solid var(--neutral-200);
+}
+
+.build-order__step.active {
+  border-color: var(--brand-gold-500);
+  background: var(--neutral-100);
+}
+
+.build-order__step p {
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+}
+
+.status {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border-radius: 8px;
+  background: var(--neutral-100);
+  color: var(--text-secondary);
+}
+
+.status.upstream {
+  background: var(--neutral-100);
+  color: var(--text-secondary);
+}
+
+.status.current {
+  background: var(--brand-navy-800);
+  color: #ffffff;
+}
+
+.status.downstream {
+  background: var(--neutral-0);
+  color: var(--text-secondary);
+}

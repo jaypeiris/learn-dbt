@@ -1,0 +1,77 @@
+{
+  "id": "testing-mastery",
+  "title": "Testing Strategy",
+  "description": "Choose and apply the right tests to make assumptions visible",
+  "challenges": [
+    {
+      "id": "test-primary-key",
+      "type": "attach_tests",
+      "title": "Test the primary key assumption",
+      "difficulty": "beginner",
+      "timeEstimate": "5 min",
+      "description": "This model assumes order_id is unique. Make that assumption testable.",
+      "scenario": "You assume order_id is unique, but you've never verified it. Add tests.",
+      "starterSql": "{{ config(materialized='table') }}\n\n-- This model assumes order_id is unique and not null\n-- But we never test that assumption\n\nselect\n  order_id,\n  customer_id,\n  order_date,\n  order_total\nfrom {{ ref('stg_orders') }}\nwhere status = 'completed'",
+      "checks": [
+        {
+          "type": "contains_text",
+          "value": "-- tests: unique, not_null on order_id",
+          "hint": "Add a comment describing what should be tested"
+        }
+      ],
+      "explanation": "Primary keys should always be tested with unique and not_null. In real dbt, you'd add these in a schema.yml file. Here, adding a comment documents the intent. These tests catch data quality issues before they cause downstream problems.",
+      "hint": "Add a comment: -- tests: unique, not_null on order_id",
+      "tags": ["testing", "data-quality", "primary-key"]
+    },
+    {
+      "id": "test-foreign-key",
+      "type": "attach_tests",
+      "title": "Test referential integrity",
+      "difficulty": "intermediate",
+      "timeEstimate": "7 min",
+      "description": "This model joins to customers. Verify every customer_id exists.",
+      "scenario": "You found orphaned orders (orders with no matching customer). Add a test to catch this.",
+      "starterSql": "{{ config(materialized='table') }}\n\nselect\n  o.order_id,\n  o.customer_id,\n  c.customer_name,\n  o.order_total\nfrom {{ ref('stg_orders') }} as o\nleft join {{ ref('stg_customers') }} as c\n  on o.customer_id = c.customer_id",
+      "checks": [
+        {
+          "type": "contains_text",
+          "value": "-- tests: relationships",
+          "hint": "Add a relationships test comment"
+        },
+        {
+          "type": "contains_text",
+          "value": "stg_customers",
+          "hint": "Document which table the foreign key references"
+        }
+      ],
+      "explanation": "The relationships test verifies that every customer_id in orders exists in customers. This is referential integrity. Without it, you get orphaned records that produce NULL in joins. The test should be: relationships(customer_id, ref('stg_customers'), customer_id)",
+      "hint": "Add: -- tests: relationships(customer_id -> stg_customers.customer_id)",
+      "tags": ["testing", "foreign-key", "referential-integrity"]
+    },
+    {
+      "id": "test-business-logic",
+      "type": "attach_tests",
+      "title": "Test business logic assumptions",
+      "difficulty": "intermediate",
+      "timeEstimate": "8 min",
+      "description": "This model calculates metrics. Test the assumptions.",
+      "scenario": "Finance found negative revenue in reports. Add tests to catch invalid data.",
+      "starterSql": "{{ config(materialized='table') }}\n\nselect\n  customer_id,\n  count(*) as order_count,\n  sum(order_total) as lifetime_value,\n  sum(order_total) / count(*) as average_order_value\nfrom {{ ref('stg_orders') }}\nwhere status = 'completed'\ngroup by customer_id",
+      "checks": [
+        {
+          "type": "contains_text",
+          "value": "-- tests:",
+          "hint": "Add test documentation as comments"
+        },
+        {
+          "type": "contains_text",
+          "value": "accepted_values",
+          "hint": "Consider testing that status is only 'completed'"
+        }
+      ],
+      "explanation": "Business metrics need business logic tests: lifetime_value should be >= 0, order_count should be > 0, average_order_value should be reasonable. These catch data bugs before they reach dashboards. Tests should include: lifetime_value >= 0, order_count > 0.",
+      "hint": "Add comments documenting tests: positive values, non-zero counts, accepted status values",
+      "tags": ["testing", "business-logic", "metrics"]
+    }
+  ]
+}

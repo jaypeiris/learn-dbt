@@ -1,0 +1,25 @@
+{
+  "id": "module-01-lesson-03-build-order",
+  "title": "Lesson 3 - Dependencies create build order",
+  "summary": "Explore how refs alone tell dbt which models run first.",
+  "description": "dbt never reads join logic or infers meaning from aliases. It simply sees two ref() calls and knows those upstream models must finish before this one compiles.",
+  "concept": "Build order is inferred from refs, not declared manually.",
+  "starterState": "Lineage walk-through",
+  "revealSections": [
+    {
+      "title": "What dbt learned",
+      "body": "Lineage shows stg_orders feeding this model before stg_customers can join. That's enough to schedule builds safely."
+    }
+  ],
+  "takeaway": "dbt builds graphs, not scripts.",
+  "models": [
+    {
+      "id": "module01_lesson03_join",
+      "title": "customer_orders",
+      "description": "Read-only model for reasoning about build sequencing.",
+      "editable": false,
+      "sql": "select *\nfrom {{ ref('stg_orders') }} o\njoin {{ ref('stg_customers') }} c\n  on o.customer_id = c.customer_id"
+    }
+  ],
+  "tasks": []
+}

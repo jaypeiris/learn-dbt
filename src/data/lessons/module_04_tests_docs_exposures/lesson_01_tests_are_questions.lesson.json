@@ -1,0 +1,81 @@
+{
+  "id": "module-04-lesson-01-tests-are-questions",
+  "title": "Lesson 1 — What a test really is",
+  "summary": "No tests are attached yet.",
+  "description": "Tests do not edit data—they surface the assumptions behind a model. Understanding test syntax helps you declare expectations clearly.",
+  "concept": "This helps explain that tests make expectations visible without changing the SQL.",
+  "starter_state": "Missing tests",
+  "hint": "Add comment lines like `-- test:not_null order_id` and `-- test:unique order_id` at the top of the model.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The model now declares the questions you expect dbt to ask about the data."
+    },
+    {
+      "title": "What dbt learns",
+      "body": "dbt records that order_id must be present and unique, so failures surface immediately."
+    },
+    {
+      "title": "Generic test syntax",
+      "body": "Generic tests use simple syntax: `-- test:not_null column_name`, `-- test:unique column_name`, `-- test:accepted_values column_name values`. These are built-in tests that dbt provides. The syntax is a comment that dbt parses to understand your expectations."
+    },
+    {
+      "title": "Custom test syntax",
+      "body": "Custom tests are defined in schema.yml files using YAML. They reference SQL files that contain the test logic. Syntax: `- name: test_name`, `dbt_utils: test_type`, or custom macros. Custom tests let you define project-specific validations."
+    },
+    {
+      "title": "Test configuration options",
+      "body": "Tests can be configured with severity levels (error, warn), tags for organization, and where clauses to filter test scope. Configuration happens in schema.yml: `severity: warn`, `tags: ['critical']`, `where: 'column_name is not null'`."
+    },
+    {
+      "title": "Test severity levels",
+      "body": "Tests default to 'error' severity—if they fail, dbt stops. You can set severity to 'warn' so failures don't block runs: `severity: warn`. This is useful for tests that might fail during development but shouldn't block production."
+    }
+  ],
+  "takeaway": "A test is just a question you force dbt to ask.",
+  "models": [
+    {
+      "id": "module04_lesson01_stg_orders",
+      "title": "stg_orders",
+      "description": "Editable staging model with no tests attached yet.",
+      "editable": true,
+      "sql": "select\n  order_id,\n  customer_id,\n  created_at\nfrom {{ source('raw', 'orders') }}"
+    },
+    {
+      "id": "module04_lesson01_test_syntax_examples",
+      "title": "Example: test syntax patterns (context)",
+      "description": "Common test syntaxes: generic tests (not_null, unique), custom tests, configuration options.",
+      "editable": false,
+      "sql": "-- Generic tests (inline comments):\n-- test:not_null order_id\n-- test:unique order_id\n-- test:accepted_values status values ('pending', 'completed')\n\n-- Custom tests (schema.yml):\n-- - name: test_custom_logic\n--   dbt_utils: expression_is_true\n--   config:\n--     severity: warn\n--     where: \"status = 'active'\""
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module04_lesson01_not_null",
+      "prompt": "Declare a not null test for order_id (e.g., `-- test:not_null order_id`).",
+      "check": {
+        "type": "contains_text",
+        "value": "test:not_null order_id",
+        "hint": "Add a comment that states the not null expectation."
+      }
+    },
+    {
+      "id": "module04_lesson01_unique",
+      "prompt": "Declare a unique test for order_id.",
+      "check": {
+        "type": "contains_text",
+        "value": "test:unique order_id",
+        "hint": "Add another comment for uniqueness."
+      }
+    },
+    {
+      "id": "module04_lesson01_test_format",
+      "prompt": "Ensure tests use the format `-- test:test_name column_name` (with colon and space).",
+      "check": {
+        "type": "contains_text",
+        "value": "test:",
+        "hint": "Tests use the format `-- test:test_name column_name` where test_name is the test type."
+      }
+    }
+  ]
+}

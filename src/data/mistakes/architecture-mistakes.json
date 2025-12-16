@@ -1,0 +1,44 @@
+{
+  "id": "architecture-mistakes",
+  "title": "Architecture Anti-Patterns",
+  "description": "Common structural mistakes that make projects unmaintainable",
+  "mistakes": [
+    {
+      "id": "business-logic-in-staging",
+      "title": "Business logic in staging layer",
+      "category": "architecture",
+      "severity": "major",
+      "description": "Staging models that calculate business metrics instead of just cleaning raw data",
+      "symptoms": [
+        "Staging models with CASE statements for segmentation",
+        "Date calculations and business rules in stg_ models",
+        "Other teams can't trust 'staging' to be boring"
+      ],
+      "brokenCode": "-- staging/stg_customers.sql\n-- MISTAKE: Business logic doesn't belong here\n\nselect\n  customer_id,\n  customer_name,\n  created_at,\n  \n  -- BAD: Segmentation is business logic\n  case\n    when total_orders > 10 then 'vip'\n    when total_orders > 5 then 'regular'\n    else 'new'\n  end as customer_segment,\n  \n  -- BAD: Date calculations are business logic\n  datediff(day, created_at, current_date) as days_as_customer,\n  \n  -- GOOD: Just renaming is fine\n  email_address as email\n  \nfrom raw.customers",
+      "whyBad": "Staging should be boring and predictable: select, rename, cast. That's it. When staging models contain business logic, they become fragile and hard to trust. Other developers expect staging to be a clean, stable foundation—not a place where business rules hide.",
+      "fixedCode": "-- staging/stg_customers.sql\n-- FIXED: Only cleaning and renaming\n\nselect\n  customer_id,\n  customer_name,\n  created_at,\n  total_orders,  -- Just pass through, don't calculate\n  email_address as email\nfrom raw.customers\n\n-- Move segmentation to intermediate/int_customer_segments.sql\n-- Move date calcs to intermediate/int_customer_tenure.sql",
+      "explanation": "The fix: Staging models only clean and rename. Business logic (segmentation, date calculations) moves to intermediate or mart layers. This makes staging predictable, testable, and reusable.",
+      "prevention": "Ask: 'Would a new team member expect to find this logic in staging?' If no, it doesn't belong. Staging = boring is good.",
+      "tags": ["staging", "layers", "business-logic"]
+    },
+    {
+      "id": "god-model",
+      "title": "The 500-line god model",
+      "category": "architecture",
+      "severity": "critical",
+      "description": "One massive model that does everything, making it impossible to understand or maintain",
+      "symptoms": [
+        "Models over 200 lines",
+        "7+ CTEs in a single model",
+        "No one understands what it does",
+        "Every change breaks something"
+      ],
+      "brokenCode": "-- marts/mart_customer_everything.sql\n-- MISTAKE: One model to rule them all (500 lines)\n\nwith orders as (\n  -- 50 lines of order logic\n),\n\nproducts as (\n  -- 40 lines of product logic\n),\n\nrevenue as (\n  -- 60 lines of revenue calculations\n),\n\nsegmentation as (\n  -- 80 lines of customer segmentation\n),\n\nscoring as (\n  -- 70 lines of scoring logic\n),\n\nrecency as (\n  -- 50 lines of recency calculations\n),\n\n-- ... 5 more CTEs ...\n\nfinal as (\n  -- 100 lines joining everything\n)\n\nselect * from final",
+      "whyBad": "God models become black boxes. No one can understand them. Testing is impossible (what grain is this?). Changes are scary. Logic is duplicated because it's buried. Builds are slow. New developers avoid touching them.",
+      "fixedCode": "-- Split into logical intermediate models:\n\n-- intermediate/int_customer_orders.sql (order aggregation)\n-- intermediate/int_customer_revenue.sql (revenue calc)\n-- intermediate/int_customer_segments.sql (segmentation)\n-- intermediate/int_customer_scores.sql (scoring)\n-- intermediate/int_customer_recency.sql (recency)\n\n-- marts/mart_customer_summary.sql (simple join)\nselect\n  c.customer_id,\n  o.order_count,\n  r.lifetime_revenue,\n  s.segment,\n  sc.score,\n  rec.recency_status\nfrom {{ ref('stg_customers') }} as c\nleft join {{ ref('int_customer_orders') }} as o using (customer_id)\nleft join {{ ref('int_customer_revenue') }} as r using (customer_id)\nleft join {{ ref('int_customer_segments') }} as s using (customer_id)\nleft join {{ ref('int_customer_scores') }} as sc using (customer_id)\nleft join {{ ref('int_customer_recency') }} as rec using (customer_id)",
+      "explanation": "Each logical piece becomes its own intermediate model. The mart becomes a simple join. Each piece is testable, understandable, and reusable. Changes are isolated.",
+      "prevention": "If a model has more than 3-4 CTEs or exceeds 100 lines, it's probably doing too much. Break it up.",
+      "tags": ["god-model", "refactoring", "architecture"]
+    }
+  ]
+}

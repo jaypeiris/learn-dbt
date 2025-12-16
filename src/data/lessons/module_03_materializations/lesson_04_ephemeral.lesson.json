@@ -1,0 +1,55 @@
+{
+  "id": "module-03-lesson-04-ephemeral",
+  "title": "Lesson 4 — Ephemeral models (invisible on purpose)",
+  "summary": "The config still says view.",
+  "description": "dbt would inline ephemeral models into downstream SQL. The ephemeral model's SELECT statement gets inserted directly into any model that references it.",
+  "concept": "This model exists to organise logic, not data. It is materialized as ephemeral.",
+  "starter_state": "Materialized object",
+  "hint": "Change `materialized='view'` to `materialized='ephemeral'`.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "dbt will now inline this logic instead of creating an object."
+    },
+    {
+      "title": "Why this matters",
+      "body": "Ephemeral models organise logic without cluttering the warehouse."
+    },
+    {
+      "title": "How ephemeral models collapse",
+      "body": "When a downstream model references an ephemeral model, dbt replaces `{{ ref('ephemeral_model') }}` with the ephemeral model's entire SELECT statement. It's like a CTE that lives in a separate file—useful for organization, but no warehouse object gets created."
+    },
+    {
+      "title": "Example: ephemeral inlining",
+      "body": "If `int_orders_ephemeral` contains `select order_id, order_date from stg_orders`, and `mart_orders` does `select * from {{ ref('int_orders_ephemeral') }}`, dbt compiles `mart_orders` as `select * from (select order_id, order_date from stg_orders)`. The ephemeral model disappears into the downstream SQL."
+    }
+  ],
+  "takeaway": "Ephemeral models exist only inside downstream SQL.",
+  "models": [
+    {
+      "id": "module03_lesson04_ephemeral_demo",
+      "title": "orders_ephemeral",
+      "description": "Starter config still materializes a view.",
+      "editable": true,
+      "sql": "{{ config(materialized='view') }}\n\nselect\n  order_id,\n  order_date\nfrom {{ ref('stg_orders') }}"
+    },
+    {
+      "id": "module03_lesson04_downstream_example",
+      "title": "Example: downstream model (context)",
+      "description": "This model would reference the ephemeral one. dbt inlines the ephemeral SQL here.",
+      "editable": false,
+      "sql": "-- If mart_orders does: select * from {{ ref('orders_ephemeral') }}\n-- dbt compiles it as: select * from (select order_id, order_date from stg_orders)\n-- The ephemeral model's SQL gets inserted directly"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module03_lesson04_ephemeral_config",
+      "prompt": "Set materialized='ephemeral'.",
+      "check": {
+        "type": "materialization",
+        "value": "ephemeral",
+        "hint": "Use config(materialized='ephemeral') to highlight the conceptual collapse."
+      }
+    }
+  ]
+}

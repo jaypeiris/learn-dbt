@@ -1,0 +1,44 @@
+{
+  "id": "saas",
+  "title": "SaaS product analytics",
+  "summary": "Track subscriptions, product usage, and lifecycle health.",
+  "focus": "Illustrates incremental usage tables paired with subscription dimensions.",
+  "layers": ["staging", "intermediate", "mart"],
+  "models": [
+    {
+      "name": "stg_account_events",
+      "layer": "staging",
+      "description": "Cleans webhook payloads for account activity.",
+      "sql": "select account_id, event_type, plan_name, cast(event_ts as timestamp) as event_ts from {{ source('raw_saas', 'account_events') }}",
+      "dependsOn": []
+    },
+    {
+      "name": "stg_product_usage",
+      "layer": "staging",
+      "description": "Explodes product usage logs for downstream aggregations.",
+      "sql": "select account_id, feature_name, usage_quantity, cast(usage_date as date) as usage_date from {{ source('raw_saas', 'product_usage') }}",
+      "dependsOn": []
+    },
+    {
+      "name": "int_account_health",
+      "layer": "intermediate",
+      "description": "Combines feature usage with recent plan changes.",
+      "sql": "with plans as (\n  select * from {{ ref('stg_account_events') }}\n)\nselect p.account_id,\n  max(case when event_type = 'plan_changed' then plan_name end) as current_plan,\n  count(distinct case when event_type = 'login' then event_ts end) as logins_last_30d\nfrom plans p\ngroup by 1",
+      "dependsOn": ["stg_account_events"]
+    },
+    {
+      "name": "int_feature_summary",
+      "layer": "intermediate",
+      "description": "Aggregates usage per feature per account.",
+      "sql": "select account_id, feature_name, sum(usage_quantity) as total_usage\nfrom {{ ref('stg_product_usage') }}\ngroup by 1,2",
+      "dependsOn": ["stg_product_usage"]
+    },
+    {
+      "name": "mart_account_health",
+      "layer": "mart",
+      "description": "Business table summarizing activation and risk for CS teams.",
+      "sql": "select\n  h.account_id,\n  h.current_plan,\n  h.logins_last_30d,\n  coalesce(sum(case when f.feature_name = 'core' then f.total_usage end), 0) as core_feature_usage\nfrom {{ ref('int_account_health') }} h\nleft join {{ ref('int_feature_summary') }} f on f.account_id = h.account_id\ngroup by 1,2,3",
+      "dependsOn": ["int_account_health", "int_feature_summary"]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "id": "module-05-lesson-04-snapshots-vs-models",
+  "title": "Lesson 4 - Snapshots are not models",
+  "summary": "Route the historical question to the snapshot instead of the current-state model.",
+  "description": "The downstream query is pointing at dim_customers, so it can only show the latest version. Fix the dependency so it reads from the snapshot when answering history questions.",
+  "concept": "This lesson exists to highlight that models explain \"now\" and snapshots explain \"used to be\".",
+  "starter_state": "History question hitting the wrong node",
+  "hint": "Change the ref so `history_question` selects from `snap_customers_status` instead of `dim_customers`.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The downstream query now reads from the snapshot, so it can return multiple records per customer."
+    },
+    {
+      "title": "What dbt learns",
+      "body": "dbt understands that historical logic depends on the snapshot node, so it will build it before the analysis."
+    }
+  ],
+  "takeaway": "Use models for today and snapshots for the audit trail.",
+  "models": [
+    {
+      "id": "module05_lesson04_dim_customers",
+      "title": "dim_customers",
+      "description": "Read-only dimension. Leave it alone; it is correct.",
+      "editable": false,
+      "sql": "select\n  customer_id,\n  current_email,\n  status\nfrom {{ ref('stg_customers') }}"
+    },
+    {
+      "id": "module05_lesson04_snap_customers",
+      "title": "snap_customers_status",
+      "description": "Snapshot that records a row whenever the status changes.",
+      "editable": false,
+      "variant": "snapshot",
+      "sql": "select\n  customer_id,\n  status,\n  dbt_valid_from,\n  dbt_valid_to\nfrom {{ ref('dim_customers') }}"
+    },
+    {
+      "id": "module05_lesson04_history_question",
+      "title": "history_question",
+      "description": "Editable query that should use the snapshot but is still pointed at dim_customers.",
+      "editable": true,
+      "sql": "select\n  customer_id,\n  status,\n  dbt_valid_from\nfrom {{ ref('dim_customers') }} -- TODO: this only shows the latest status"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module05_lesson04_switch-ref",
+      "prompt": "Point `history_question` at `snap_customers_status` so it can answer 'what used to be true?'",
+      "check": {
+        "type": "includes_ref",
+        "value": "snap_customers_status",
+        "hint": "Use the snapshot ref; otherwise dbt has no idea this query depends on history."
+      }
+    }
+  ]
+}

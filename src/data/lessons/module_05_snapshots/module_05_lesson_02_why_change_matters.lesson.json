@@ -1,0 +1,48 @@
+{
+  "id": "module-05-lesson-02-why-change-matters",
+  "title": "Lesson 2 - Why change matters",
+  "summary": "Expose when a value changed, not just what it is now.",
+  "description": "Right now the query only returns the latest status. Add the observed day so the change becomes visible.",
+  "concept": "This model exists to prove that capturing WHEN something happened is just as important as the value itself.",
+  "starter_state": "Missing timeline context",
+  "hint": "Select `updated_at as observed_day` (or similar) so each row shows when it was recorded.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The model now carries the observed day, so you can compare how status moves across time."
+    },
+    {
+      "title": "Why this matters",
+      "body": "dbt can only surface change if the SQL actually carries a when/observed_at column."
+    }
+  ],
+  "takeaway": "Tracking change means writing time into the SQL.",
+  "models": [
+    {
+      "id": "module05_lesson02_status_now",
+      "title": "customer_status_today",
+      "description": "Editable model that is missing the observed timestamp.",
+      "editable": true,
+      "sql": "select\n  customer_id,\n  status\nfrom {{ ref('stg_customers') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module05_lesson02_add-observed",
+      "prompt": "Add a column (e.g., `updated_at as observed_day`) so you know when each status was seen.",
+      "check": {
+        "type": "contains_text",
+        "value": "observed",
+        "hint": "Include a timestamp column that clearly states when the record was captured."
+      }
+    }
+  ],
+  "annotations": {
+    "snapshots": [
+      {
+        "label": "Timeline",
+        "description": "When you record change, you can later snapshot it."
+      }
+    ]
+  }
+}

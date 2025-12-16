@@ -1,0 +1,67 @@
+{
+  "id": "module-06-lesson-02-model-metadata",
+  "title": "Lesson 2 - What dbt learns from your models",
+  "summary": "Give dbt enough metadata to describe this node in the manifest.",
+  "description": "Right now the example model lacks a materialization config and meaningful column names, so the manifest only knows it is a view with anonymous columns. Add the missing details so the metadata becomes useful.",
+  "concept": "dbt does not run SQL to learn about a model - it reads configs and the SELECT clause.",
+  "starter_state": "Missing metadata",
+  "hint": "Add `{{ config(materialized='table') }}` at the top and alias `status` to a clearer name.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The manifest now records that this node materializes as a table with a descriptive column."
+    },
+    {
+      "title": "Why this matters",
+      "body": "Teams can inspect the manifest to understand intent before reading every file."
+    }
+  ],
+  "takeaway": "Configs and column aliases feed the metadata dbt relies on.",
+  "models": [
+    {
+      "id": "module06_lesson02_stg_customers",
+      "title": "stg_customers (context)",
+      "description": "Upstream staging model already present in the example manifest.",
+      "editable": false,
+      "sql": "select\n  customer_id,\n  status,\n  updated_at\nfrom {{ source('raw', 'customer_status') }}"
+    },
+    {
+      "id": "module06_lesson02_dim_customers",
+      "title": "dim_customers_manifest_view",
+      "description": "Editable model missing its config and clear column aliases.",
+      "editable": true,
+      "sql": "select\n  customer_id,\n  status\nfrom {{ ref('stg_customers') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module06_lesson02_materialization",
+      "prompt": "Add a config block that sets `materialized='table'` so the manifest knows what dbt would create.",
+      "check": {
+        "type": "materialization",
+        "value": "table",
+        "hint": "Use `{{ config(materialized='table') }}` at the top of the model."
+      }
+    },
+    {
+      "id": "module06_lesson02_column-alias",
+      "prompt": "Alias `status` to `status_flag` so the manifest records a meaningful column name.",
+      "check": {
+        "type": "mentions_column",
+        "value": "status_flag",
+        "hint": "Add `as status_flag` in the SELECT list."
+      }
+    }
+  ],
+  "annotations": {
+    "docs": [
+      {
+        "label": "Model metadata",
+        "description": "Materialization, refs, and columns live inside the manifest."
+      }
+    ]
+  },
+  "features": {
+    "showManifestExplorer": true
+  }
+}

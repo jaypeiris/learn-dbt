@@ -1,0 +1,111 @@
+.lineage-graph {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: 0.9rem;
+  padding: 1.5rem;
+}
+
+.lineage-graph__svg {
+  max-width: 900px;
+  width: 100%;
+  height: auto;
+}
+
+.lineage-graph__edge {
+  stroke: #9aa7b6;
+  stroke-width: 2;
+  marker-end: url(#arrow-head);
+}
+
+.lineage-graph__node {
+  fill: var(--neutral-0);
+  stroke: #9aa7b6;
+  stroke-width: 2;
+}
+
+.lineage-graph__node.upstream {
+  stroke: #b6bec9;
+  fill: var(--neutral-100);
+}
+
+.lineage-graph__node.current {
+  fill: var(--brand-navy-800);
+  stroke: var(--brand-navy-900);
+  stroke-width: 3;
+}
+
+.lineage-graph__node.downstream {
+  stroke: #c7cfd8;
+  fill: var(--neutral-0);
+}
+
+.lineage-graph__node.snapshot {
+  stroke-dasharray: 6 4;
+  stroke: #9aa7b6;
+  fill: var(--neutral-100);
+  stroke-width: 2;
+}
+
+.lineage-graph__label {
+  font-size: 1rem;
+  fill: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.lineage-graph__node.current + .lineage-graph__label {
+  fill: #ffffff;
+  font-weight: 700;
+}
+
+.lineage-graph__sublabel {
+  font-size: 0.8rem;
+  fill: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+
+.lineage-graph__node.current + .lineage-graph__label + .lineage-graph__sublabel {
+  fill: #d4e7df;
+}
+
+.lineage-graph__legend {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--neutral-200);
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.lineage-graph__legend .dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.lineage-graph__legend .dot.upstream {
+  background: var(--neutral-100);
+  border: 2px solid #b6bec9;
+}
+
+.lineage-graph__legend .dot.current {
+  background: var(--brand-navy-800);
+  border: 2px solid var(--brand-navy-900);
+}
+
+.lineage-graph__legend .dot.downstream {
+  background: var(--neutral-0);
+  border: 2px solid #c7cfd8;
+}

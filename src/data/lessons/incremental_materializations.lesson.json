@@ -1,0 +1,52 @@
+{
+  "id": "module-03-lesson-06-incremental-advanced",
+  "title": "Incremental materializations",
+  "summary": "Guard work by only processing new SaaS account events.",
+  "description": "Incremental models speed up builds, but only if they reference the right upstream data and guard the incremental clause.",
+  "concept": "This model exists to keep an always-fresh account status table without running heavy history rebuilds every time.",
+  "models": [
+    {
+      "id": "account_status",
+      "title": "account_status",
+      "description": "Editable model that aggregates account events. Tweak the incremental logic.",
+      "editable": true,
+      "sql": "{{ config(materialized='incremental', unique_key='account_id') }}\n\nwith events as (\n  select * from {{ ref('stg_account_events') }}\n)\n\nselect\n  account_id,\n  max(active_plan) as active_plan,\n  max(updated_at) as last_event_at\nfrom events\n{% if is_incremental() %}\nwhere updated_at > (\n  select coalesce(max(last_event_at), '1900-01-01') from {{ this }}\n)\n{% endif %}\ngroup by 1"
+    },
+    {
+      "id": "stg_account_events",
+      "title": "stg_account_events",
+      "description": "Contextual staging model that standardizes SaaS account events.",
+      "editable": false,
+      "sql": "select\n  account_id,\n  active_plan,\n  status,\n  cast(updated_at as timestamp) as updated_at\nfrom {{ source('raw_saas', 'account_events') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "incremental-config",
+      "prompt": "Keep the config materialized as incremental.",
+      "check": {
+        "type": "materialization",
+        "value": "incremental",
+        "hint": "Call config(materialized='incremental')."
+      }
+    },
+    {
+      "id": "guard-present",
+      "prompt": "Reference is_incremental() to guard the WHERE clause.",
+      "check": {
+        "type": "contains_text",
+        "value": "is_incremental",
+        "hint": "Wrap the WHERE clause in an {% if is_incremental() %} block."
+      }
+    },
+    {
+      "id": "incremental-ref",
+      "prompt": "Select data from stg_account_events.",
+      "check": {
+        "type": "includes_ref",
+        "value": "stg_account_events",
+        "hint": "Use {{ ref('stg_account_events') }} when defining the events CTE."
+      }
+    }
+  ]
+}

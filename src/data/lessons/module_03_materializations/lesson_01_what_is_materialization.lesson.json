@@ -1,0 +1,54 @@
+{
+  "id": "module-03-lesson-01-materialization-basics",
+  "title": "Lesson 1: What a materialization is",
+  "summary": "The config still says table even though this should be a view.",
+  "description": "dbt runs your SQL either way. The config tells dbt whether to persist as a table or keep it virtual as a view.",
+  "concept": "This model exists as a view, meaning dbt would create a virtual definition of the query.",
+  "starter_state": "Wrong materialization",
+  "hint": "Change `materialized='table'` to `materialized='view'`.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "dbt will now create a lightweight view instead of a persistent table."
+    },
+    {
+      "title": "What dbt learns",
+      "body": "By reading the config block, dbt knows the object type without running SQL."
+    }
+  ],
+  "comparisons": [
+    {
+      "title": "View vs table config",
+      "note": "The only difference is the materialized setting, but it changes how the object is built.",
+      "left": {
+        "label": "Intended: view (no storage, quick deploys)",
+        "code": "{{ config(materialized='view') }}\n\nselect\n  order_id,\n  order_date\nfrom {{ ref('stg_orders') }}"
+      },
+      "right": {
+        "label": "Wrong: table (persists every run)",
+        "code": "{{ config(materialized='table') }}\n\nselect\n  order_id,\n  order_date\nfrom {{ ref('stg_orders') }}"
+      }
+    }
+  ],
+  "takeaway": "Materialization config describes the object dbt creates.",
+  "models": [
+    {
+      "id": "module03_lesson01_view_demo",
+      "title": "view_orders",
+      "description": "Starter config set to table instead of view.",
+      "editable": true,
+      "sql": "{{ config(materialized='table') }}\n\nselect\n  order_id,\n  order_date\nfrom {{ ref('stg_orders') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module03_lesson01_materialization_view",
+      "prompt": "Set the config to materialized='view'.",
+      "check": {
+        "type": "materialization",
+        "value": "view",
+        "hint": "Update the config line to call this a view."
+      }
+    }
+  ]
+}

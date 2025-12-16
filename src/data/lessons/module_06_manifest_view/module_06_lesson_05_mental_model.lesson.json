@@ -1,0 +1,72 @@
+{
+  "id": "module-06-lesson-05-mental-model",
+  "title": "Lesson 5 - From mental model to real projects",
+  "summary": "Close the loop: pull history and layers together in one node.",
+  "description": "Everything from prior modules lives inside this example manifest. The final fact model still ignores the snapshot that records status changes. Add the missing ref so the graph shows layers, snapshots, and marts working together.",
+  "concept": "Understanding the manifest view means you can trace how layers, materializations, tests, and snapshots relate.",
+  "starter_state": "History missing from the mart",
+  "hint": "Join `snap_customer_status` via `ref('snap_customer_status')` to capture when status changed.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The mart now depends on both the intermediate model and the snapshot, so the manifest shows the full path."
+    },
+    {
+      "title": "Why this matters",
+      "body": "Reading the graph becomes easier because every important concept is connected in one place."
+    }
+  ],
+  "takeaway": "Once the graph reflects reality, unfamiliar dbt projects feel approachable.",
+  "models": [
+    {
+      "id": "module06_lesson05_int_orders",
+      "title": "int_orders_enriched (context)",
+      "description": "Intermediate model carrying cleaned order data.",
+      "editable": false,
+      "sql": "select\n  order_id,\n  customer_id,\n  order_total,\n  order_date\nfrom {{ ref('stg_orders') }}"
+    },
+    {
+      "id": "module06_lesson05_snapshot",
+      "title": "snap_customer_status (context)",
+      "description": "Snapshot remembering when each status was true.",
+      "editable": false,
+      "variant": "snapshot",
+      "sql": "select\n  customer_id,\n  status,\n  dbt_valid_from\nfrom {{ ref('stg_customers') }}"
+    },
+    {
+      "id": "module06_lesson05_fct_growth",
+      "title": "fct_growth_story",
+      "description": "Editable mart missing the snapshot dependency.",
+      "editable": true,
+      "sql": "select\n  o.order_id,\n  o.order_total,\n  o.order_date,\n  s.status\nfrom {{ ref('int_orders_enriched') }} o\nleft join -- TODO: add the snapshot ref here\ngeneric_status_history s on o.customer_id = s.customer_id"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module06_lesson05_add-snapshot-ref",
+      "prompt": "Join the snapshot by replacing `generic_status_history` with `{{ ref('snap_customer_status') }}`.",
+      "check": {
+        "type": "includes_ref",
+        "value": "snap_customer_status",
+        "hint": "Use ref('snap_customer_status') so the manifest shows that history feeds this mart."
+      }
+    }
+  ],
+  "annotations": {
+    "snapshots": [
+      {
+        "label": "History node",
+        "description": "Snapshots remember what used to be true."
+      }
+    ],
+    "docs": [
+      {
+        "label": "Layers together",
+        "description": "Staging → intermediate → snapshot → mart all appear in the same graph."
+      }
+    ]
+  },
+  "features": {
+    "showManifestExplorer": true
+  }
+}

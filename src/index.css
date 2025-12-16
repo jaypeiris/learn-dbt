@@ -1,0 +1,50 @@
+:root {
+  /* Brand frame */
+  --brand-navy-900: #0b1b2e;
+  --brand-navy-800: #10263f;
+  --brand-navy-700: #163a5f;
+  --brand-gold-500: #d6b26e;
+
+  /* Learning surface */
+  --neutral-0: #ffffff;
+  --neutral-50: #fafafa;
+  --neutral-100: #f4f6f8;
+  --neutral-200: #e5e9ef;
+
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --border-soft: #d6dce4;
+  --border-strong: #c2c9d2;
+
+  --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--neutral-50);
+  color: var(--text-primary);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background-color: var(--neutral-50);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+code {
+  font-family: var(--font-mono);
+}

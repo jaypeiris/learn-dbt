@@ -1,0 +1,67 @@
+{
+  "id": "module-02-lesson-04-marts",
+  "title": "Lesson 4 — Marts represent business concepts",
+  "summary": "The mart is still aggregating straight from staging.",
+  "description": "Marts turn the prepared intermediate tables into the language your teams speak. They calculate business metrics like cohort analysis, growth rates, customer lifetime value, and revenue recognition patterns.",
+  "concept": "This layer exists to expose stable, business-friendly outputs that downstream tools can trust.",
+  "starter_state": "Skipped intermediate layer",
+  "hint": "Aggregate {{ ref('int_orders_enriched') }} instead of stg_orders.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The mart now depends on the intermediate table that owns all the cleaning and enrichment."
+    },
+    {
+      "title": "Why this matters",
+      "body": "Business-facing models stay stable when marts rely on curated layers instead of staging."
+    },
+    {
+      "title": "Common business metrics in marts",
+      "body": "Marts calculate metrics that teams actually use: cohort analysis (retention by signup cohort), growth rates (month-over-month, year-over-year), customer lifetime value (total revenue per customer), and revenue recognition (recognized vs deferred). These calculations belong in marts, not intermediate layers."
+    }
+  ],
+  "takeaway": "Marts should read intermediate outputs, not staging tables.",
+  "models": [
+    {
+      "id": "module02_lesson04_int_orders",
+      "title": "int_orders_enriched",
+      "description": "Read-only intermediate model.",
+      "editable": false,
+      "sql": "select order_id, order_date, customer_id, total_amount\nfrom {{ ref('stg_orders') }}"
+    },
+    {
+      "id": "module02_lesson04_mart_orders",
+      "title": "mart_daily_orders",
+      "description": "Editable mart model currently pointing at the wrong layer.",
+      "editable": true,
+      "sql": "select\n  order_date,\n  count(*) as orders\nfrom {{ ref('stg_orders') }}\ngroup by order_date"
+    },
+    {
+      "id": "module02_lesson04_business_metrics_examples",
+      "title": "Example: business metrics in marts (context)",
+      "description": "Common patterns: daily revenue, customer lifetime value, growth rates, cohort retention.",
+      "editable": false,
+      "sql": "-- Daily revenue: sum(total_amount) as daily_revenue\n-- Customer lifetime value: sum(total_amount) over (partition by customer_id)\n-- Growth rate: (current_month - previous_month) / previous_month * 100\n-- Cohort retention: count(distinct customer_id) by signup_month"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module02_lesson04_ref_intermediate",
+      "prompt": "Reference int_orders_enriched to capture the lineage.",
+      "check": {
+        "type": "includes_ref",
+        "value": "int_orders_enriched",
+        "hint": "Marts depend on the intermediate models rather than raw sources."
+      }
+    },
+    {
+      "id": "module02_lesson04_aggregation",
+      "prompt": "Keep the aggregation so the output feels business-ready.",
+      "check": {
+        "type": "contains_text",
+        "value": "count(",
+        "hint": "Aggregations signal that this layer shapes business metrics."
+      }
+    }
+  ]
+}

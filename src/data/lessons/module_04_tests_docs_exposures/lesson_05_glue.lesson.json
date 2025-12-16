@@ -1,0 +1,58 @@
+{
+  "id": "module-04-lesson-05-glue-not-features",
+  "title": "Lesson 5 — Glue, not features",
+  "summary": "This mart is missing tests, docs, and exposures.",
+  "description": "This lesson ties the concepts together and shows how they attach to a single model.",
+  "concept": "This connects data to usage: tests, docs, and exposures make the project legible.",
+  "starter_state": "Attachments missing",
+  "hint": "Add comments for a test, a doc, and an exposure (e.g., `-- test:unique order_id`, `-- doc: ...`, `-- exposure: Executive Scorecard`).",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The mart now declares its assumptions, explains itself, and notes who uses it."
+    },
+    {
+      "title": "Why this matters",
+      "body": "Understanding tests, docs, and exposures is what makes dbt projects understandable."
+    }
+  ],
+  "takeaway": "Glue (tests/docs/exposures) makes dbt legible for humans.",
+  "models": [
+    {
+      "id": "module04_lesson05_fct_orders",
+      "title": "fct_orders",
+      "description": "Central business model referenced across the org.",
+      "editable": true,
+      "sql": "select\n  order_id,\n  order_total\nfrom {{ ref('int_orders_enriched') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module04_lesson05_test",
+      "prompt": "Attach a simple test (e.g., `-- test:unique order_id`).",
+      "check": {
+        "type": "contains_text",
+        "value": "test:",
+        "hint": "Add a single-line comment naming the test."
+      }
+    },
+    {
+      "id": "module04_lesson05_doc",
+      "prompt": "Add a doc comment that explains the model.",
+      "check": {
+        "type": "contains_text",
+        "value": "doc:",
+        "hint": "Describe the intent in plain language."
+      }
+    },
+    {
+      "id": "module04_lesson05_exposure",
+      "prompt": "Declare who's using it (e.g., `-- exposure: Executive Scorecard`).",
+      "check": {
+        "type": "contains_text",
+        "value": "exposure:",
+        "hint": "Name the downstream artifact."
+      }
+    }
+  ]
+}

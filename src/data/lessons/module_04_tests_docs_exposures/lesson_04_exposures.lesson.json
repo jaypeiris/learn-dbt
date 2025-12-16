@@ -1,0 +1,40 @@
+{
+  "id": "module-04-lesson-04-exposures",
+  "title": "Lesson 4 — Exposures connect models to real usage",
+  "summary": "No exposure is declared yet.",
+  "description": "Exposures do not transform data. They simply map models to the dashboards or notebooks that use them.",
+  "concept": "This connects data to usage so you know why the model exists.",
+  "starter_state": "Missing exposure",
+  "hint": "Add a comment like `-- exposure: Sales Dashboard` near the SELECT.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The model now signals which downstream artifact relies on it."
+    },
+    {
+      "title": "Why this matters",
+      "body": "Exposures help you trace impact when the data changes."
+    }
+  ],
+  "takeaway": "Exposures explain who cares about the data.",
+  "models": [
+    {
+      "id": "module04_lesson04_fct_orders",
+      "title": "fct_orders",
+      "description": "Business-ready table summarising orders.",
+      "editable": true,
+      "sql": "select\n  order_id,\n  order_total\nfrom {{ ref('mart_orders') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module04_lesson04_exposure",
+      "prompt": "Declare an exposure (e.g., `-- exposure: Sales Dashboard`).",
+      "check": {
+        "type": "contains_text",
+        "value": "exposure:",
+        "hint": "Add a comment naming the downstream usage."
+      }
+    }
+  ]
+}

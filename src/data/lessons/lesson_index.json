@@ -1,0 +1,162 @@
+[
+  {
+    "id": "module-01-intro-to-refs",
+    "title": "Intro to ref()",
+    "summary": "See how ref() stitches staging layers into a mart model."
+  },
+  {
+    "id": "module-01-lesson-01-models-are-sql",
+    "title": "Lesson 1 - A dbt model is just SQL",
+    "summary": "Edit a plain SELECT to see dbt models are just files."
+  },
+  {
+    "id": "module-01-lesson-02-why-ref",
+    "title": "Lesson 2 - Why ref() exists",
+    "summary": "Replace hardcoded tables with ref() so dbt can see dependencies."
+  },
+  {
+    "id": "module-01-lesson-03-build-order",
+    "title": "Lesson 3 - Dependencies create build order",
+    "summary": "Refs alone tell dbt which models must build first."
+  },
+  {
+    "id": "module-01-lesson-04-what-dbt-learns",
+    "title": "Lesson 4 - What dbt learns from your SQL",
+    "summary": "See the metadata dbt captures before it runs anything."
+  },
+  {
+    "id": "module-01-capstone-make-dbt-see-model",
+    "title": "Module Capstone - Make dbt see this model",
+    "summary": "Fix the broken model with ref() so lineage shows both inputs."
+  },
+  {
+    "id": "module-02-lesson-01-why-staging",
+    "title": "Module 2 Lesson 1 - Why staging models exist",
+    "summary": "See why raw data flows into staging first."
+  },
+  {
+    "id": "module-02-lesson-02-staging-purpose",
+    "title": "Module 2 Lesson 2 - Staging models are boring on purpose",
+    "summary": "Consistency matters more than clever SQL here."
+  },
+  {
+    "id": "module-02-lesson-03-intermediate",
+    "title": "Module 2 Lesson 3 - Intermediate models reduce cognitive load",
+    "summary": "Join staging models together before adding business context."
+  },
+  {
+    "id": "module-02-lesson-04-marts",
+    "title": "Module 2 Lesson 4 - Marts represent business concepts",
+    "summary": "Aggregate clean inputs into a business-facing table."
+  },
+  {
+    "id": "module-02-lesson-05-layers-change",
+    "title": "Module 2 Lesson 5 - Layers help people reason about change",
+    "summary": "Raw \u00e2\u2020\u2019 staging \u00e2\u2020\u2019 intermediate \u00e2\u2020\u2019 mart keeps change understandable."
+  },
+  {
+    "id": "module-03-lesson-01-materialization-basics",
+    "title": "Module 3 Lesson 1 - What a materialization is",
+    "summary": "Understand that configs change what dbt creates, not the SQL."
+  },
+  {
+    "id": "module-03-lesson-02-view-vs-table",
+    "title": "Module 3 Lesson 2 - View vs table",
+    "summary": "Compare how dbt would create a view versus a table."
+  },
+  {
+    "id": "module-03-lesson-03-incremental",
+    "title": "Module 3 Lesson 3 - Incremental models",
+    "summary": "See how incremental models think in first run vs later runs."
+  },
+  {
+    "id": "module-03-lesson-06-incremental-advanced",
+    "title": "Incremental materializations (advanced)",
+    "summary": "Why incremental models need guards and unique keys."
+  },
+  {
+    "id": "module-03-lesson-04-ephemeral",
+    "title": "Module 3 Lesson 4 - Ephemeral models",
+    "summary": "Highlight that ephemeral models organise SQL without storing data."
+  },
+  {
+    "id": "module-03-lesson-05-intent",
+    "title": "Module 3 Lesson 5 - Choosing materializations is about intent",
+    "summary": "Match layers (staging, intermediate, marts) to conceptual materializations."
+  },
+  {
+    "id": "module-04-lesson-01-tests-are-questions",
+    "title": "Module 4 Lesson 1 - What a test really is",
+    "summary": "Treat tests as questions about your data."
+  },
+  {
+    "id": "module-04-lesson-02-tests-live-with-models",
+    "title": "Module 4 Lesson 2 - Tests live next to models",
+    "summary": "See how assumptions stay with the model."
+  },
+  {
+    "id": "module-04-lesson-03-documentation",
+    "title": "Module 4 Lesson 3 - Why documentation exists",
+    "summary": "Pair descriptions with SQL for clarity."
+  },
+  {
+    "id": "module-04-lesson-04-exposures",
+    "title": "Module 4 Lesson 4 - Exposures connect models to usage",
+    "summary": "Map models to dashboards and notebooks."
+  },
+  {
+    "id": "module-04-lesson-05-glue-not-features",
+    "title": "Module 4 Lesson 5 - Glue, not features",
+    "summary": "Combine tests, docs, and exposures."
+  },
+  {
+    "id": "module-05-lesson-01-current-vs-historical",
+    "title": "Module 5 Lesson 1 - Current vs historical state",
+    "summary": "See why most models only show today."
+  },
+  {
+    "id": "module-05-lesson-02-why-change-matters",
+    "title": "Module 5 Lesson 2 - Why change matters",
+    "summary": "Think about how values shift over time."
+  },
+  {
+    "id": "module-05-lesson-03-what-snapshots-represent",
+    "title": "Module 5 Lesson 3 - What a snapshot represents",
+    "summary": "Snapshots remember what used to be true and when."
+  },
+  {
+    "id": "module-05-lesson-04-snapshots-vs-models",
+    "title": "Module 5 Lesson 4 - Snapshots are not models",
+    "summary": "Compare current-state models vs historical snapshots."
+  },
+  {
+    "id": "module-05-lesson-05-when-to-use-snapshots",
+    "title": "Module 5 Lesson 5 - When to reach for snapshots",
+    "summary": "Only reach for snapshots when history matters."
+  },
+  {
+    "id": "module-06-lesson-01-graph-not-script",
+    "title": "Module 6 Lesson 1 - dbt builds a graph",
+    "summary": "See how dbt thinks in nodes and dependencies."
+  },
+  {
+    "id": "module-06-lesson-02-model-metadata",
+    "title": "Module 6 Lesson 2 - What dbt learns from models",
+    "summary": "Inspect metadata without running SQL."
+  },
+  {
+    "id": "module-06-lesson-03-node-types",
+    "title": "Module 6 Lesson 3 - Different object types",
+    "summary": "Models, snapshots, tests, and exposures share the graph."
+  },
+  {
+    "id": "module-06-lesson-04-why-compilation",
+    "title": "Module 6 Lesson 4 - Why compilation exists",
+    "summary": "Compilation produces the manifest dbt needs."
+  },
+  {
+    "id": "module-06-lesson-05-mental-model",
+    "title": "Module 6 Lesson 5 - From mental model to projects",
+    "summary": "Understanding the internal graph removes the mystery."
+  }
+]

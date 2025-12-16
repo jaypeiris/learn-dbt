@@ -1,0 +1,67 @@
+{
+  "id": "module-02-lesson-01-why-staging",
+  "title": "Lesson 1 — Why staging models exist",
+  "summary": "The staging model still exposes raw column names.",
+  "description": "Raw data lands with awkward names, mixed types, and extra columns. Staging models standardize these inconsistencies so downstream layers can rely on predictable schemas.",
+  "concept": "This layer exists to lightly clean raw fields so downstream SQL stays readable.",
+  "starter_state": "Messy raw names",
+  "hint": "Alias created_ts as created_at and cust_id as customer_id while keeping the rows 1:1 with the source.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The staging model now exposes friendlier column names without changing the grain."
+    },
+    {
+      "title": "What dbt learns",
+      "body": "dbt records the cleaned column names, so downstream layers inherit the readable schema."
+    },
+    {
+      "title": "Common renaming patterns",
+      "body": "Staging models handle many inconsistencies: timestamp formats (created_ts → created_at), boolean values (Y/N → true/false), and naming conventions (cust_id → customer_id). Each source system may use different patterns, but staging makes them consistent."
+    }
+  ],
+  "takeaway": "Staging keeps the shape identical but the names readable.",
+  "models": [
+    {
+      "id": "module02_lesson01_raw_orders",
+      "title": "raw_orders",
+      "description": "Context-only snapshot of the raw feed with inconsistent naming.",
+      "editable": false,
+      "sql": "select order_id, created_ts, cust_id, raw_payload\nfrom {{ source('raw', 'orders') }}"
+    },
+    {
+      "id": "module02_lesson01_raw_customers",
+      "title": "raw_customers (context)",
+      "description": "Another source with different naming: is_active uses Y/N instead of boolean, and timestamp format differs.",
+      "editable": false,
+      "sql": "select\n  customer_id as cust_id,\n  active_flag as is_active,\n  signup_datetime as created_ts\nfrom {{ source('raw', 'customers') }}"
+    },
+    {
+      "id": "module02_lesson01_stg_orders",
+      "title": "stg_orders",
+      "description": "Editable staging model. Rename and trim columns while staying 1:1 with the source.",
+      "editable": true,
+      "sql": "select\n  order_id,\n  created_ts,\n  cust_id\nfrom {{ source('raw', 'orders') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module02_lesson01_created",
+      "prompt": "Alias created_ts to created_at.",
+      "check": {
+        "type": "contains_text",
+        "value": "created_ts as created_at",
+        "hint": "Use `created_ts as created_at` to show the cleaned timestamp."
+      }
+    },
+    {
+      "id": "module02_lesson01_columns",
+      "prompt": "Alias cust_id to customer_id.",
+      "check": {
+        "type": "mentions_column",
+        "value": "customer_id",
+        "hint": "Staging models pass through key columns without extra logic."
+      }
+    }
+  ]
+}

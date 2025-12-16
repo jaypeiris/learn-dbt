@@ -1,0 +1,66 @@
+{
+  "id": "module-03-lesson-05-intent",
+  "title": "Lesson 5 — Choosing materializations is about intent",
+  "summary": "The mart is still configured as a view.",
+  "description": "This lesson compares layers: staging as views, intermediate logic as ephemeral, marts as tables. Each layer's materialization choice reflects how the data is used.",
+  "concept": "This helps explain that clarity beats optimisation. Pick the materialization that matches how people rely on the model.",
+  "starter_state": "Wrong layer intent",
+  "hint": "Change the mart config to `materialized='table'`.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The mart now persists business-ready data for downstream tools."
+    },
+    {
+      "title": "Why this matters",
+      "body": "Staging stays as views, intermediate logic can be ephemeral, and marts tend to be tables."
+    },
+    {
+      "title": "Why staging uses views",
+      "body": "Staging models are lightweight transformations—renaming, casting, filtering. Views are perfect because they're always fresh (read directly from source), require no storage, and rebuild quickly. Staging changes frequently as sources evolve, so views keep it flexible."
+    },
+    {
+      "title": "When intermediate should be ephemeral",
+      "body": "Intermediate models with complex logic that aren't reused across many downstream models are good candidates for ephemeral. They organize SQL without creating warehouse objects. Use ephemeral when the logic is specific to one or two downstream models, not when many marts depend on it."
+    },
+    {
+      "title": "Why marts are tables",
+      "body": "Marts are the final outputs that dashboards, notebooks, and reports consume. They need to be stable (same results every query), performant (pre-computed aggregations), and reliable (downstream tools expect tables). Tables persist results, so queries are fast and consistent."
+    }
+  ],
+  "takeaway": "Pick materializations based on how the data is used.",
+  "models": [
+    {
+      "id": "module03_lesson05_staging_view",
+      "title": "stg_orders",
+      "description": "Conceptual staging model represented as a view.",
+      "editable": false,
+      "sql": "{{ config(materialized='view') }}\nselect * from {{ source('raw', 'orders') }}"
+    },
+    {
+      "id": "module03_lesson05_intermediate_ephemeral",
+      "title": "int_orders_ephemeral",
+      "description": "Conceptual intermediate model represented as ephemeral.",
+      "editable": false,
+      "sql": "{{ config(materialized='ephemeral') }}\nselect * from {{ ref('stg_orders') }}"
+    },
+    {
+      "id": "module03_lesson05_mart_table",
+      "title": "mart_orders",
+      "description": "Editable mart currently configured as a view.",
+      "editable": true,
+      "sql": "{{ config(materialized='view') }}\nselect * from {{ ref('int_orders_ephemeral') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module03_lesson05_mart_config",
+      "prompt": "Set the mart config to materialized='table'.",
+      "check": {
+        "type": "materialization",
+        "value": "table",
+        "hint": "Marts are usually tables because downstream tools rely on stable results."
+      }
+    }
+  ]
+}

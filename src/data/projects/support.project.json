@@ -1,0 +1,44 @@
+{
+  "id": "support",
+  "title": "Customer support analytics",
+  "summary": "Monitor case backlog and satisfaction trends.",
+  "focus": "Demonstrates layering ticket data into actionable support KPIs.",
+  "layers": ["staging", "intermediate", "mart"],
+  "models": [
+    {
+      "name": "stg_tickets",
+      "layer": "staging",
+      "description": "Renames and type-casts ticket fields.",
+      "sql": "select ticket_id, customer_id, status, priority, cast(opened_at as timestamp) as opened_at, cast(closed_at as timestamp) as closed_at from {{ source('raw_support', 'tickets') }}",
+      "dependsOn": []
+    },
+    {
+      "name": "stg_satisfaction",
+      "layer": "staging",
+      "description": "Captures NPS-like satisfaction survey responses.",
+      "sql": "select ticket_id, score, cast(recorded_at as timestamp) as recorded_at from {{ source('raw_support', 'satisfaction') }}",
+      "dependsOn": []
+    },
+    {
+      "name": "int_ticket_durations",
+      "layer": "intermediate",
+      "description": "Calculates handle time windows for each ticket.",
+      "sql": "select ticket_id,\n  datediff('hour', opened_at, coalesce(closed_at, current_timestamp)) as hours_open\nfrom {{ ref('stg_tickets') }}",
+      "dependsOn": ["stg_tickets"]
+    },
+    {
+      "name": "int_ticket_sentiment",
+      "layer": "intermediate",
+      "description": "Blends handle times with satisfaction surveys.",
+      "sql": "select t.ticket_id,\n  d.hours_open,\n  s.score\nfrom {{ ref('stg_tickets') }} t\nleft join {{ ref('int_ticket_durations') }} d on d.ticket_id = t.ticket_id\nleft join {{ ref('stg_satisfaction') }} s on s.ticket_id = t.ticket_id",
+      "dependsOn": ["stg_tickets", "int_ticket_durations", "stg_satisfaction"]
+    },
+    {
+      "name": "mart_support_overview",
+      "layer": "mart",
+      "description": "Final dataset summarizing backlog, CSAT, and SLA compliance.",
+      "sql": "select\n  t.status,\n  count(*) as open_cases,\n  avg(d.hours_open) as avg_hours_open,\n  avg(s.score) as avg_score\nfrom {{ ref('stg_tickets') }} t\nleft join {{ ref('int_ticket_durations') }} d on d.ticket_id = t.ticket_id\nleft join {{ ref('stg_satisfaction') }} s on s.ticket_id = t.ticket_id\ngroup by 1",
+      "dependsOn": ["stg_tickets", "int_ticket_durations", "stg_satisfaction"]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "id": "grain-mastery",
+  "title": "Grain & Joins",
+  "description": "Identify and fix grain issues that cause duplicate rows or incorrect aggregations",
+  "challenges": [
+    {
+      "id": "find-grain-bug",
+      "type": "fix_grain",
+      "title": "Find the grain bug",
+      "difficulty": "intermediate",
+      "timeEstimate": "7 min",
+      "description": "This model is producing duplicate rows. The grain is wrong.",
+      "scenario": "Your dashboard shows inflated revenue numbers. The problem is in this model's grain.",
+      "starterSql": "-- This model should be one row per order\n-- But it's producing duplicates\n\nselect\n  o.order_id,\n  o.customer_id,\n  o.order_date,\n  o.order_total,\n  p.product_name,\n  p.category\nfrom {{ ref('stg_orders') }} as o\nleft join {{ ref('stg_products') }} as p\n  on o.order_id = p.order_id  -- BUG: wrong join key\nwhere o.status = 'completed'",
+      "checks": [
+        {
+          "type": "contains_text",
+          "value": "-- grain: one row per order",
+          "hint": "Add a comment declaring the grain"
+        },
+        {
+          "type": "contains_text",
+          "value": "p.product_id",
+          "hint": "The join needs to be on product_id, not order_id"
+        }
+      ],
+      "explanation": "The bug: joining orders to products on order_id creates one row per order per product in that order. If an order has 3 products, you get 3 rows for that order. The grain should be explicit: 'one row per order' means you shouldn't join to order_items or products directly. You'd need to aggregate products first, or change the grain to 'one row per order line item'.",
+      "hint": "If the grain is truly 'one row per order', you shouldn't join to products at all. Consider what the grain should actually be.",
+      "tags": ["grain", "joins", "debugging", "duplicates"]
+    },
+    {
+      "id": "declare-grain",
+      "type": "fix_grain",
+      "title": "Declare the grain explicitly",
+      "difficulty": "beginner",
+      "timeEstimate": "5 min",
+      "description": "This model doesn't declare its grain. Make it explicit.",
+      "scenario": "A teammate asked 'what's the grain of this model?' You don't know. Fix that.",
+      "starterSql": "select\n  date_trunc('day', event_timestamp) as event_date,\n  user_id,\n  event_type,\n  count(*) as event_count\nfrom {{ ref('stg_events') }}\ngroup by 1, 2, 3",
+      "checks": [
+        {
+          "type": "contains_text",
+          "value": "-- grain:",
+          "hint": "Add a comment at the top declaring the grain"
+        }
+      ],
+      "explanation": "This model's grain is 'one row per user per day per event type'. Making grain explicit helps future maintainers understand what the model represents and prevents accidental duplicates when joining.",
+      "hint": "Add: -- grain: one row per user per day per event_type",
+      "tags": ["grain", "documentation", "best-practices"]
+    },
+    {
+      "id": "fix-fanout",
+      "type": "fix_grain",
+      "title": "Fix the fanout join",
+      "difficulty": "advanced",
+      "timeEstimate": "12 min",
+      "description": "This model has a fanout problem causing revenue to be counted multiple times",
+      "scenario": "Finance reports revenue is 10x higher than reality. The issue is a many-to-many join.",
+      "starterSql": "-- Calculate revenue per customer\n-- BUG: This multiplies revenue incorrectly\n\nselect\n  c.customer_id,\n  c.customer_name,\n  sum(o.order_total) as total_revenue,\n  count(distinct st.ticket_id) as support_tickets\nfrom {{ ref('stg_customers') }} as c\nleft join {{ ref('stg_orders') }} as o\n  on c.customer_id = o.customer_id\nleft join {{ ref('stg_support_tickets') }} as st\n  on c.customer_id = st.customer_id\ngroup by 1, 2",
+      "checks": [
+        {
+          "type": "contains_text",
+          "value": "int_customer",
+          "hint": "Pre-aggregate before joining to avoid fanout"
+        }
+      ],
+      "explanation": "The fanout problem: A customer with 2 orders and 3 tickets creates 6 rows (2×3) before aggregation. The revenue gets counted 3x (once per ticket). The fix: pre-aggregate orders and tickets separately in intermediate models, then join the aggregated results.",
+      "hint": "Create intermediate models that aggregate to customer level first, then join those",
+      "tags": ["grain", "fanout", "joins", "advanced", "aggregation"]
+    }
+  ]
+}

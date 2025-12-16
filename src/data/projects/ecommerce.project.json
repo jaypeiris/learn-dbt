@@ -1,0 +1,44 @@
+{
+  "id": "ecommerce",
+  "title": "E-commerce analytics",
+  "summary": "From orders and customers to a conversion-ready marts layer.",
+  "focus": "Highlights how staging, intermediate, and mart models roll up shopper behaviour.",
+  "layers": ["staging", "intermediate", "mart"],
+  "models": [
+    {
+      "name": "stg_orders",
+      "layer": "staging",
+      "description": "Cleans order timestamps and exposes core metrics.",
+      "sql": "select order_id, customer_id, cast(ordered_at as timestamp) as ordered_at, total_amount from {{ source('raw_ecommerce', 'orders') }}",
+      "dependsOn": []
+    },
+    {
+      "name": "stg_customers",
+      "layer": "staging",
+      "description": "Normalizes customer names and segments.",
+      "sql": "select customer_id, initcap(customer_name) as customer_name, segment from {{ source('raw_ecommerce', 'customers') }}",
+      "dependsOn": []
+    },
+    {
+      "name": "int_order_enrichments",
+      "layer": "intermediate",
+      "description": "Adds loyalty assignments before metrics rollups.",
+      "sql": "with base as (\n  select * from {{ ref('stg_orders') }}\n)\nselect *,\n  case when total_amount > 500 then 'gold' else 'standard' end as loyalty_tier\nfrom base",
+      "dependsOn": ["stg_orders"]
+    },
+    {
+      "name": "int_customer_profile",
+      "layer": "intermediate",
+      "description": "Blends customer segments and calculates repeat rate.",
+      "sql": "select c.*, count(o.order_id) over (partition by c.customer_id) as order_count\nfrom {{ ref('stg_customers') }} c\nleft join {{ ref('stg_orders') }} o on o.customer_id = c.customer_id",
+      "dependsOn": ["stg_customers", "stg_orders"]
+    },
+    {
+      "name": "mart_orders_overview",
+      "layer": "mart",
+      "description": "Business-facing table powering fulfillment dashboards.",
+      "sql": "select\n  o.order_id,\n  o.ordered_at,\n  p.customer_name,\n  p.segment,\n  o.total_amount,\n  p.order_count\nfrom {{ ref('int_order_enrichments') }} o\njoin {{ ref('int_customer_profile') }} p on p.customer_id = o.customer_id",
+      "dependsOn": ["int_order_enrichments", "int_customer_profile"]
+    }
+  ]
+}

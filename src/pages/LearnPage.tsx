@@ -1,0 +1,164 @@
+import { useEffect, useMemo, useState } from 'react'
+import SqlEditor from '../components/editor/SqlEditor'
+import LessonRenderer from '../components/lesson/LessonRenderer'
+import LessonNavTop from '../components/lesson/LessonNavTop'
+import LineageGraph from '../components/lineage/LineageGraph'
+import ManifestExplorer from '../components/manifest/ManifestExplorer'
+import { parseSqlModel } from '../lib/sqlParser'
+import { buildLineageGraph } from '../lib/lineageBuilder'
+import { getDefaultLessonId, getLessonById, getLessonIndex } from '../lib/lessonEngine'
+import { getCurrentLesson, getSqlEdit, saveCurrentLesson, saveSqlEdit, getCompletedLessons } from '../lib/progressStore'
+import type { LessonDefinition } from '../../types/lesson'
+import './LearnPage.css'
+
+const lessonIndex = getLessonIndex()
+const moduleOrder = Array.from(
+  new Map(
+    lessonIndex
+      .map((lesson) => extractModuleCode(lesson.id))
+      .filter((code): code is string => Boolean(code))
+      .map((code) => [code, true]),
+  ).keys(),
+)
+
+function selectActiveModel(lesson: LessonDefinition | undefined) {
+  if (!lesson) return undefined
+  return lesson.models.find((model) => model.editable) ?? lesson.models[0]
+}
+
+export default function LearnPage() {
+  // Load saved progress or default lesson
+  const savedLessonId = getCurrentLesson()
+  const [selectedLessonId, setSelectedLessonId] = useState(savedLessonId || getDefaultLessonId())
+  const [lesson, setLesson] = useState<LessonDefinition | undefined>(() => getLessonById(selectedLessonId))
+  const [completedLessons, setCompletedLessons] = useState<Set<string>>(getCompletedLessons())
+
+  const initialModel = selectActiveModel(lesson)
+  // Try to load saved SQL edit, fallback to default
+  const savedSql = getSqlEdit(selectedLessonId)
+  const [sql, setSql] = useState(savedSql ?? initialModel?.sql ?? '')
+  const [modelName, setModelName] = useState(initialModel?.title ?? 'model')
+  const [isEditable, setIsEditable] = useState(initialModel?.editable ?? false)
+  const [modelVariant, setModelVariant] = useState<'model' | 'snapshot'>(initialModel?.variant ?? 'model')
+
+  useEffect(() => {
+    const nextLesson = getLessonById(selectedLessonId)
+    setLesson(nextLesson)
+    const nextModel = selectActiveModel(nextLesson)
+
+    // Save current lesson to localStorage
+    saveCurrentLesson(selectedLessonId)
+
+    if (nextModel) {
+      // Try to load saved SQL, fallback to default
+      const savedSql = getSqlEdit(selectedLessonId)
+      setSql(savedSql ?? nextModel.sql)
+      setModelName(nextModel.title)
+      setIsEditable(nextModel.editable)
+      setModelVariant(nextModel.variant ?? 'model')
+    } else {
+      setSql('')
+      setModelName(nextLesson?.title ?? 'lesson')
+      setIsEditable(false)
+      setModelVariant('model')
+    }
+  }, [selectedLessonId])
+
+  // Auto-save SQL edits as user types (with debounce in real impl, but simple for now)
+  useEffect(() => {
+    if (isEditable && sql) {
+      saveSqlEdit(selectedLessonId, sql)
+    }
+  }, [sql, selectedLessonId, isEditable])
+
+  // Callback to mark lesson complete
+  const handleLessonComplete = () => {
+    setCompletedLessons(getCompletedLessons())
+  }
+
+  const parsed = useMemo(() => parseSqlModel(sql), [sql])
+  const graph = useMemo(
+    () =>
+      buildLineageGraph(modelName, parsed.refs, {
+        currentMaterialization: parsed.materialization,
+        currentVariant: modelVariant,
+      }),
+    [modelName, parsed.refs, parsed.materialization, modelVariant],
+  )
+
+  if (!lesson) {
+    return (
+      <div className="fallback-card">
+        <p>No lesson data found. Check the JSON files under src/data/lessons.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="learn-layout">
+      <aside className="learn-sidebar">
+        <LessonNavTop
+          lessons={lessonIndex}
+          currentLessonId={selectedLessonId}
+          completedLessons={completedLessons}
+          onSelect={setSelectedLessonId}
+        />
+      </aside>
+      <section className="learn-main">
+        <div className="lesson-primary">
+          <LessonRenderer
+            lesson={lesson}
+            parsed={parsed}
+            sql={sql}
+            moduleLabel={getModuleLabel(selectedLessonId)}
+            onLessonComplete={handleLessonComplete}
+            lessonId={selectedLessonId}
+          />
+          <div className="lesson-lineage">
+            <p className="lineage-label">Lineage reference</p>
+            <LineageGraph graph={graph} />
+          </div>
+          <div className="lesson-editor">
+            {lesson.models.length > 0 ? (
+              <SqlEditor
+                label={`Model: ${modelName}`}
+                value={sql}
+                onChange={isEditable ? setSql : undefined}
+                readOnly={!isEditable}
+                helperText={
+                  isEditable
+                    ? 'String checks only. This never runs dbt or queries a warehouse.'
+                    : 'Read-only example SQL for this lesson.'
+                }
+              />
+            ) : (
+              <div className="placeholder-card">
+                This lesson focuses on conceptual glue, so no editable SQL is shown yet.
+              </div>
+            )}
+          </div>
+        </div>
+        <aside className="lesson-secondary">
+          {lesson.features?.showManifestExplorer && <ManifestExplorer />}
+        </aside>
+      </section>
+    </div>
+  )
+}
+
+function extractModuleCode(lessonId: string): string | null {
+  const match = lessonId.match(/^(module-\d{2})/)
+  return match ? match[1] : null
+}
+
+function getModuleLabel(lessonId: string): string | undefined {
+  const moduleCode = extractModuleCode(lessonId)
+  if (!moduleCode) {
+    return undefined
+  }
+  const moduleIndex = moduleOrder.indexOf(moduleCode)
+  if (moduleIndex === -1) {
+    return undefined
+  }
+  return `Module ${moduleIndex + 1} of ${moduleOrder.length}`
+}

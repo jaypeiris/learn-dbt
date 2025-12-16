@@ -1,0 +1,63 @@
+{
+  "id": "module-01-capstone-make-dbt-see-model",
+  "title": "Module Capstone - Make dbt see this model",
+  "summary": "Fix the dependencies so lineage shows both upstream models.",
+  "description": "This is the required proof that you understand why ref() exists. The SQL runs locally, but dbt does not know what it relies on until you replace the hardcoded tables.",
+  "concept": "If dbt cannot see a ref, it cannot build the graph.",
+  "starterState": "Module Capstone",
+  "hint": "Replace both analytics.orders and analytics.customers with matching ref() calls.",
+  "revealSections": [
+    {
+      "title": "What changed in the graph",
+      "body": "Two upstream nodes now feed this model, so the build order animation finally shows a sequence instead of a blank state."
+    },
+    {
+      "title": "Why dbt could not reason before",
+      "body": "Hardcoded schemas look like random SQL to dbt. Without ref(), it cannot tell whether the upstream object lives in dev, prod, or another project."
+    },
+    {
+      "title": "What breaks without refs",
+      "body": "Renames, environment switching, state comparison, and slim CI all fail because dbt cannot resolve dependencies automatically."
+    }
+  ],
+  "takeaway": "If dbt can't see a ref, it can't reason about your project.",
+  "successMessage": "Nice. dbt can now reason about this model.",
+  "models": [
+    {
+      "id": "module01_capstone_model",
+      "title": "customer_order_view",
+      "description": "Mandatory challenge: make dbt understand these dependencies.",
+      "editable": true,
+      "sql": "select\n  o.id,\n  c.name\nfrom analytics.orders o\njoin analytics.customers c\n  on o.customer_id = c.id"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module01-capstone-orders-ref",
+      "prompt": "Reference the orders model with ref().",
+      "check": {
+        "type": "includes_ref",
+        "value": "orders",
+        "hint": "Use {{ ref('orders') }} o so dbt tracks the upstream model."
+      }
+    },
+    {
+      "id": "module01-capstone-customers-ref",
+      "prompt": "Reference the customers model with ref().",
+      "check": {
+        "type": "includes_ref",
+        "value": "customers",
+        "hint": "Replace analytics.customers with {{ ref('customers') }}."
+      }
+    },
+    {
+      "id": "module01-capstone-two-unique-refs",
+      "prompt": "Use two different ref() calls so dbt sees both upstream models.",
+      "check": {
+        "type": "min_unique_refs",
+        "value": 2,
+        "hint": "You need two distinct ref() calls: one for orders and one for customers."
+      }
+    }
+  ]
+}

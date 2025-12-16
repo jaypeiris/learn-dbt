@@ -1,0 +1,44 @@
+{
+  "id": "dependency-mistakes",
+  "title": "Dependency & Reference Mistakes",
+  "description": "Hardcoded names and broken dependency chains",
+  "mistakes": [
+    {
+      "id": "hardcoded-schema",
+      "title": "Hardcoded schema and table names",
+      "category": "dependencies",
+      "severity": "critical",
+      "description": "Using direct table references instead of ref(), making dbt blind to dependencies",
+      "symptoms": [
+        "Models fail with 'table not found' errors",
+        "dbt doesn't build models in the right order",
+        "DAG is incomplete or wrong",
+        "Can't run subsets of the project"
+      ],
+      "brokenCode": "-- marts/mart_customer_revenue.sql\n-- MISTAKE: Hardcoded table names\n\nselect\n  c.customer_id,\n  c.customer_name,\n  sum(o.order_total) as lifetime_revenue\nfrom analytics.stg_customers as c  -- BAD: hardcoded\nleft join analytics.stg_orders as o  -- BAD: hardcoded\n  on c.customer_id = o.customer_id\ngroup by 1, 2",
+      "whyBad": "dbt can't see the dependencies. It doesn't know this model needs stg_customers and stg_orders built first. The DAG is broken. Selective runs fail. Different environments (dev/prod) break because schema names differ.",
+      "fixedCode": "-- marts/mart_customer_revenue.sql\n-- FIXED: Using ref() for dependencies\n\nselect\n  c.customer_id,\n  c.customer_name,\n  sum(o.order_total) as lifetime_revenue\nfrom {{ ref('stg_customers') }} as c\nleft join {{ ref('stg_orders') }} as o\n  on c.customer_id = o.customer_id\ngroup by 1, 2",
+      "explanation": "Using ref() tells dbt about dependencies. Now dbt knows to build stg_customers and stg_orders before this mart. The DAG is correct. Selective runs work. Environment-specific schemas are handled automatically.",
+      "prevention": "Never type schema names. Always use ref() or source(). If you see schema.table in a model, it's wrong.",
+      "tags": ["ref", "dependencies", "hardcoded"]
+    },
+    {
+      "id": "circular-dependency-conceptual",
+      "title": "Circular dependency (conceptual)",
+      "category": "dependencies",
+      "severity": "critical",
+      "description": "Model A depends on B, which depends on A—creating an impossible build order",
+      "symptoms": [
+        "dbt errors: 'Found a cycle in the dependency graph'",
+        "Models that can never build",
+        "Confusion about which model should be upstream"
+      ],
+      "brokenCode": "-- models/customer_metrics.sql\nselect\n  customer_id,\n  lifetime_revenue\nfrom {{ ref('order_summary') }}  -- depends on order_summary\n\n-- models/order_summary.sql  \nselect\n  customer_id,\n  customer_segment  -- needs segment from customer_metrics\nfrom {{ ref('customer_metrics') }}  -- depends on customer_metrics\n\n-- CIRCULAR: customer_metrics → order_summary → customer_metrics",
+      "whyBad": "Circular dependencies are impossible to build. dbt can't determine order. This usually means the models are doing too much or the layering is wrong.",
+      "fixedCode": "-- Solution: Break the cycle with proper layering\n\n-- intermediate/int_order_summary.sql\n-- Contains only order aggregation (no customer segment)\nselect\n  customer_id,\n  sum(order_total) as lifetime_revenue\nfrom {{ ref('stg_orders') }}\ngroup by customer_id\n\n-- intermediate/int_customer_segments.sql\n-- Calculates segments from order summary\nselect\n  customer_id,\n  case\n    when lifetime_revenue > 1000 then 'vip'\n    else 'regular'\n  end as segment\nfrom {{ ref('int_order_summary') }}\n\n-- marts/mart_customer_metrics.sql\n-- Final mart joins both\nselect\n  os.customer_id,\n  os.lifetime_revenue,\n  cs.segment\nfrom {{ ref('int_order_summary') }} as os\nleft join {{ ref('int_customer_segments') }} as cs\n  using (customer_id)",
+      "explanation": "The fix: Create a linear dependency chain. int_order_summary → int_customer_segments → mart_customer_metrics. No circles. Each model has a clear purpose.",
+      "prevention": "Draw the dependency graph before writing models. If you see a circle, rethink your layers.",
+      "tags": ["circular", "dependencies", "dag"]
+    }
+  ]
+}

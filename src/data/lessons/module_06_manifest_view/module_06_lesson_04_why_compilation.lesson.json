@@ -1,0 +1,60 @@
+{
+  "id": "module-06-lesson-04-why-compilation",
+  "title": "Lesson 4 - Why compilation exists",
+  "summary": "Literal table names keep this node out of the manifest. Replace them with refs.",
+  "description": "In our example manifest, compilation resolves ref() calls and records them inside the graph. Until you add the refs, dbt cannot see how this intermediate model depends on staging tables.",
+  "concept": "Compilation turns author-friendly SQL into machine-readable metadata.",
+  "starter_state": "Literal table names",
+  "hint": "Swap `stg_orders` and `dim_customers` for `{{ ref('stg_orders') }}` and `{{ ref('dim_customers') }}`.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The compiler now resolves both refs, so the manifest stores their fully qualified names."
+    },
+    {
+      "title": "Why this matters",
+      "body": "dbt can only plan builds and generate SQL once it resolves every dependency."
+    }
+  ],
+  "takeaway": "Compilation is the step where refs become real dependencies.",
+  "models": [
+    {
+      "id": "module06_lesson04_int_orders_ready",
+      "title": "int_orders_ready",
+      "description": "Editable model still using literal table names, so compilation has nothing to resolve.",
+      "editable": true,
+      "sql": "select\n  o.order_id,\n  o.order_total,\n  c.customer_segment\nfrom stg_orders o\njoin dim_customers c on o.customer_id = c.customer_id"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module06_lesson04_ref_orders",
+      "prompt": "Wrap the staging table in a ref: `{{ ref('stg_orders') }}`.",
+      "check": {
+        "type": "includes_ref",
+        "value": "stg_orders",
+        "hint": "Compilation only works when dbt sees ref('model_name')."
+      }
+    },
+    {
+      "id": "module06_lesson04_ref_customers",
+      "prompt": "Wrap the dimension in a ref: `{{ ref('dim_customers') }}`.",
+      "check": {
+        "type": "includes_ref",
+        "value": "dim_customers",
+        "hint": "Use ref() for every model reference so the manifest knows about it."
+      }
+    }
+  ],
+  "annotations": {
+    "docs": [
+      {
+        "label": "Compiled manifest",
+        "description": "Stores every resolved ref so dbt knows the full graph."
+      }
+    ]
+  },
+  "features": {
+    "showManifestExplorer": true
+  }
+}

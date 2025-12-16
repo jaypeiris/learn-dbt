@@ -1,0 +1,125 @@
+.lesson-sidebar {
+  width: 220px;
+  min-width: 200px;
+  padding-right: 1.25rem;
+  border-right: 1px solid var(--neutral-200);
+  background: var(--neutral-0);
+}
+
+.lesson-sidebar__title {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.lesson-sidebar__modules {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lesson-sidebar__hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.lesson-module {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.lesson-module__label {
+  background: none;
+  border: none;
+  padding: 0.35rem 0;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  letter-spacing: 0.01em;
+}
+
+.lesson-module__label.active {
+  border-color: var(--neutral-200);
+}
+
+.lesson-module__list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0.5rem 0.75rem;
+  display: none;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.lesson-module__list.expanded {
+  display: flex;
+}
+
+.lesson-link {
+  background: none;
+  border: none;
+  padding: 0.35rem 0;
+  text-align: left;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.lesson-link.active {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.lesson-link.completed .lesson-link__title {
+  color: var(--brand-navy-700);
+}
+
+.lesson-link__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--brand-gold-500);
+  color: var(--brand-navy-900);
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.lesson-link__title {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.lesson-link.active::before {
+  content: '';
+  position: absolute;
+  left: -0.75rem;
+  top: 0.35rem;
+  width: 3px;
+  height: 1.25rem;
+  background: var(--brand-gold-500);
+  border-radius: 2px;
+}
+
+@media (max-width: 900px) {
+  .lesson-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e1e9e3;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+  }
+}

@@ -1,0 +1,331 @@
+{
+  "paths": [
+    {
+      "id": "analyst",
+      "title": "Analyst Path",
+      "subtitle": "Build marts and understand project structure",
+      "description": "Perfect for analysts who need to create business-facing models, understand existing projects, and collaborate with data teams. Focus on modularity, documentation, and marts.",
+      "ideal_for": [
+        "Business analysts moving into dbt",
+        "SQL analysts joining a dbt team",
+        "Anyone building reports and dashboards"
+      ],
+      "learning_outcomes": [
+        "Read and understand any dbt project structure",
+        "Build clean, documented marts",
+        "Use ref() and understand dependencies",
+        "Write tests that catch data quality issues",
+        "Document models for stakeholders"
+      ],
+      "total_time": "3-4 hours",
+      "completion_badge": "dbt Analyst",
+      "steps": [
+        {
+          "type": "lesson",
+          "id": "module-01-what-is-dbt",
+          "title": "What dbt Core is",
+          "description": "Understand dbt's role in the data stack",
+          "estimated_time": "10 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-01-ref-basics",
+          "title": "ref() basics",
+          "description": "Learn how dbt tracks dependencies",
+          "estimated_time": "12 min"
+        },
+        {
+          "type": "practice",
+          "id": "fix-ref-basic",
+          "title": "Practice: Replace hardcoded tables",
+          "description": "Apply ref() to real SQL",
+          "estimated_time": "5 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-02-staging-layer",
+          "title": "Staging layer purpose",
+          "description": "Why staging should be boring",
+          "estimated_time": "10 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-02-marts",
+          "title": "Marts layer",
+          "description": "Business-facing models",
+          "estimated_time": "12 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-02-grain",
+          "title": "Understanding grain",
+          "description": "What one row represents",
+          "estimated_time": "15 min"
+        },
+        {
+          "type": "practice",
+          "id": "declare-grain",
+          "title": "Practice: Declare grain",
+          "description": "Make grain explicit in a model",
+          "estimated_time": "5 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-04-tests-intro",
+          "title": "Introduction to tests",
+          "description": "Making assumptions visible",
+          "estimated_time": "12 min"
+        },
+        {
+          "type": "practice",
+          "id": "test-primary-key",
+          "title": "Practice: Test primary keys",
+          "description": "Apply data quality tests",
+          "estimated_time": "5 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-04-documentation",
+          "title": "Documentation",
+          "description": "Document models and columns",
+          "estimated_time": "10 min"
+        },
+        {
+          "type": "mistake",
+          "id": "business-logic-in-staging",
+          "title": "Mistake: Business logic in staging",
+          "description": "Learn what NOT to do",
+          "estimated_time": "8 min"
+        },
+        {
+          "type": "action",
+          "id": "build-first-mart",
+          "title": "Build your first mart",
+          "description": "Apply everything you've learned to create a simple mart model",
+          "estimated_time": "20 min"
+        }
+      ]
+    },
+    {
+      "id": "engineer",
+      "title": "Engineer Path",
+      "subtitle": "Master testing, performance, and advanced patterns",
+      "description": "For data engineers who need to build robust, performant dbt projects. Focus on testing strategies, materializations, snapshots, and project architecture.",
+      "ideal_for": [
+        "Data engineers building dbt pipelines",
+        "Analytics engineers owning dbt projects",
+        "Anyone responsible for data quality and performance"
+      ],
+      "learning_outcomes": [
+        "Choose the right materialization for any model",
+        "Build comprehensive testing strategies",
+        "Design scalable project architectures",
+        "Use snapshots for historical tracking",
+        "Optimize query performance",
+        "Debug complex dependency issues"
+      ],
+      "total_time": "4-5 hours",
+      "completion_badge": "dbt Engineer",
+      "steps": [
+        {
+          "type": "lesson",
+          "id": "module-01-ref-basics",
+          "title": "ref() and dependencies",
+          "description": "Foundation of dbt's DAG",
+          "estimated_time": "12 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-02-intermediate-models",
+          "title": "Intermediate layer",
+          "description": "Reusable business logic",
+          "estimated_time": "15 min"
+        },
+        {
+          "type": "practice",
+          "id": "create-intermediate",
+          "title": "Practice: Extract intermediate",
+          "description": "Refactor complex mart logic",
+          "estimated_time": "10 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-03-materializations",
+          "title": "Materializations overview",
+          "description": "View, table, incremental, ephemeral",
+          "estimated_time": "15 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-03-incremental",
+          "title": "Incremental models",
+          "description": "For large, growing datasets",
+          "estimated_time": "18 min"
+        },
+        {
+          "type": "practice",
+          "id": "choose-incremental",
+          "title": "Practice: When to use incremental",
+          "description": "Apply incremental strategy",
+          "estimated_time": "10 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-04-tests-intro",
+          "title": "Testing strategies",
+          "description": "Generic vs singular tests",
+          "estimated_time": "12 min"
+        },
+        {
+          "type": "practice",
+          "id": "test-business-logic",
+          "title": "Practice: Test business logic",
+          "description": "Comprehensive testing",
+          "estimated_time": "8 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-05-snapshots",
+          "title": "Snapshots",
+          "description": "Track changes over time",
+          "estimated_time": "15 min"
+        },
+        {
+          "type": "mistake",
+          "id": "fanout-join",
+          "title": "Mistake: Fanout joins",
+          "description": "Avoid inflated metrics",
+          "estimated_time": "10 min"
+        },
+        {
+          "type": "mistake",
+          "id": "god-model",
+          "title": "Mistake: God models",
+          "description": "Keep models focused",
+          "estimated_time": "8 min"
+        },
+        {
+          "type": "practice",
+          "id": "split-god-model",
+          "title": "Practice: Split god model",
+          "description": "Refactor for maintainability",
+          "estimated_time": "15 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-06-manifest",
+          "title": "How dbt builds the graph",
+          "description": "Understand dbt's internals",
+          "estimated_time": "20 min"
+        }
+      ]
+    },
+    {
+      "id": "reader",
+      "title": "Reader Path",
+      "subtitle": "Fast-track to understanding existing dbt projects",
+      "description": "Quickly learn to read and navigate dbt projects you've inherited or joined. Focus on recognizing patterns, understanding structure, and finding what you need.",
+      "ideal_for": [
+        "Joining a team with an existing dbt project",
+        "Reviewing someone else's dbt code",
+        "Onboarding to a new dbt codebase quickly"
+      ],
+      "learning_outcomes": [
+        "Recognize dbt project patterns instantly",
+        "Navigate unfamiliar codebases confidently",
+        "Understand model dependencies at a glance",
+        "Identify layer violations and code smells",
+        "Know where to find business logic",
+        "Read the manifest and lineage"
+      ],
+      "total_time": "2-3 hours",
+      "completion_badge": "dbt Reader",
+      "steps": [
+        {
+          "type": "lesson",
+          "id": "module-01-what-is-dbt",
+          "title": "What dbt Core is",
+          "description": "Quick context",
+          "estimated_time": "10 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-01-ref-basics",
+          "title": "ref() creates dependencies",
+          "description": "How models connect",
+          "estimated_time": "12 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-02-staging-layer",
+          "title": "Staging = boring",
+          "description": "What to expect in stg_ models",
+          "estimated_time": "10 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-02-intermediate-models",
+          "title": "Intermediate = reusable logic",
+          "description": "Where business rules live",
+          "estimated_time": "15 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-02-marts",
+          "title": "Marts = business-facing",
+          "description": "Final outputs",
+          "estimated_time": "12 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-02-grain",
+          "title": "Reading grain",
+          "description": "What does one row mean?",
+          "estimated_time": "15 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-03-materializations",
+          "title": "Materialization = what dbt creates",
+          "description": "View vs table vs incremental",
+          "estimated_time": "15 min"
+        },
+        {
+          "type": "mistake",
+          "id": "business-logic-in-staging",
+          "title": "Red flag: Logic in staging",
+          "description": "Recognize violations",
+          "estimated_time": "8 min"
+        },
+        {
+          "type": "mistake",
+          "id": "hardcoded-schema",
+          "title": "Red flag: Hardcoded tables",
+          "description": "Missing dependencies",
+          "estimated_time": "7 min"
+        },
+        {
+          "type": "mistake",
+          "id": "undeclared-grain",
+          "title": "Red flag: Mystery grain",
+          "description": "Undocumented assumptions",
+          "estimated_time": "7 min"
+        },
+        {
+          "type": "lesson",
+          "id": "module-06-manifest",
+          "title": "The manifest = dbt's memory",
+          "description": "How to read the graph",
+          "estimated_time": "20 min"
+        },
+        {
+          "type": "action",
+          "id": "explore-project",
+          "title": "Explore a sample project",
+          "description": "Navigate the e-commerce project",
+          "estimated_time": "15 min"
+        }
+      ]
+    }
+  ]
+}

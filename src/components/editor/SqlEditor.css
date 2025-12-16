@@ -1,0 +1,144 @@
+.sql-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sql-editor__label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.sql-editor__tag {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+/* CodeMirror wrapper styling */
+.sql-editor__codemirror {
+  border-radius: 12px;
+  border: 1px solid var(--neutral-200);
+  background: var(--neutral-0);
+  overflow: hidden;
+  min-height: 280px;
+  transition: all 0.2s ease;
+}
+
+.sql-editor__codemirror:hover {
+  border-color: var(--neutral-300);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.sql-editor__codemirror :global(.cm-editor) {
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  background: var(--neutral-0);
+  color: var(--text-primary);
+}
+
+.sql-editor__codemirror :global(.cm-scroller) {
+  padding: 0.75rem 0;
+  min-height: 280px;
+}
+
+.sql-editor__codemirror :global(.cm-content) {
+  padding: 0.75rem 0;
+}
+
+.sql-editor__codemirror :global(.cm-line) {
+  padding: 0 1.25rem;
+  line-height: 1.7;
+}
+
+.sql-editor__codemirror :global(.cm-gutters) {
+  background: var(--neutral-100);
+  border-right: 1px solid var(--neutral-200);
+  color: var(--text-secondary);
+  padding-right: 0.5rem;
+}
+
+.sql-editor__codemirror :global(.cm-activeLineGutter) {
+  background: var(--neutral-100);
+}
+
+.sql-editor__codemirror :global(.cm-activeLine) {
+  background: var(--neutral-100);
+}
+
+.sql-editor__codemirror :global(.cm-focused) {
+  outline: 2px solid var(--brand-navy-700);
+}
+
+/* SQL Syntax Highlighting - matching dbt aesthetic */
+.sql-editor__codemirror :global(.cm-keyword) {
+  color: var(--brand-navy-700);
+  font-weight: 700;
+}
+
+.sql-editor__codemirror :global(.cm-builtin) {
+  color: var(--brand-navy-700);
+}
+
+.sql-editor__codemirror :global(.cm-string) {
+  color: #6b4d1f;
+}
+
+.sql-editor__codemirror :global(.cm-comment) {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.sql-editor__codemirror :global(.cm-number) {
+  color: #7c3a18;
+}
+
+.sql-editor__codemirror :global(.cm-operator) {
+  color: var(--text-primary);
+}
+
+.sql-editor__codemirror :global(.cm-function) {
+  color: var(--brand-gold-500);
+  font-weight: 600;
+}
+
+/* Read-only styling */
+.sql-editor__codemirror :global(.cm-editor.cm-editor-readonly) {
+  background: var(--neutral-100);
+}
+
+.sql-editor__codemirror :global(.cm-editor.cm-editor-readonly .cm-gutters) {
+  background: var(--neutral-100);
+}
+
+.sql-editor__codemirror :global(.cm-editor.cm-editor-readonly .cm-cursor) {
+  display: none;
+}
+
+.sql-editor__hint {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0.5rem 0 0 0;
+  line-height: 1.5;
+  padding: 0.75rem 1rem;
+  background: var(--neutral-50);
+  border-radius: 8px;
+  border: 1px solid var(--neutral-200);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .sql-editor__codemirror :global(.cm-editor) {
+    font-size: 0.85rem;
+  }
+
+  .sql-editor__codemirror :global(.cm-scroller) {
+    min-height: 180px;
+  }
+}

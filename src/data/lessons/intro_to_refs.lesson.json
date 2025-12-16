@@ -1,0 +1,59 @@
+{
+  "id": "module-01-intro-to-refs",
+  "title": "Intro to ref()",
+  "summary": "Connect staging models into a mart-ready orders table.",
+  "description": "This lesson focuses on how ref() expresses lineage and how dbt compiles SQL before building.",
+  "concept": "This model exists to blend clean staging tables into an orders mart that downstream dashboards can query with confidence.",
+  "models": [
+    {
+      "id": "orders_overview",
+      "title": "orders_overview",
+      "description": "Editable model that pulls together staging tables. Try changing the selected columns or refs.",
+      "editable": true,
+      "sql": "{{ config(materialized='table') }}\n\nwith orders as (\n  select * from {{ ref('stg_orders') }}\n),\ncustomers as (\n  select * from {{ ref('stg_customers') }}\n)\n\nselect\n  o.order_id,\n  o.ordered_at as ordered_at,\n  c.customer_name as customer_name,\n  c.segment,\n  o.total_amount\nfrom orders o\njoin customers c on o.customer_id = c.customer_id"
+    },
+    {
+      "id": "stg_orders",
+      "title": "stg_orders",
+      "description": "Contextual model: renames raw columns and enforces types.",
+      "editable": false,
+      "sql": "select\n  order_id,\n  cast(ordered_at as timestamp) as ordered_at,\n  customer_id,\n  total_amount\nfrom {{ source('raw_ecommerce', 'orders') }}"
+    },
+    {
+      "id": "stg_customers",
+      "title": "stg_customers",
+      "description": "Contextual model: cleans names and assigns segments.",
+      "editable": false,
+      "sql": "select\n  customer_id,\n  initcap(customer_name) as customer_name,\n  segment\nfrom {{ source('raw_ecommerce', 'customers') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "ref-orders",
+      "prompt": "Reference the stg_orders model with ref().",
+      "check": {
+        "type": "includes_ref",
+        "value": "stg_orders",
+        "hint": "Use {{ ref('stg_orders') }} inside a CTE."
+      }
+    },
+    {
+      "id": "ref-customers",
+      "prompt": "Reference stg_customers to join people data.",
+      "check": {
+        "type": "includes_ref",
+        "value": "stg_customers",
+        "hint": "Add another ref() call for the customers staging model."
+      }
+    },
+    {
+      "id": "column-segment",
+      "prompt": "Select the customer segment column.",
+      "check": {
+        "type": "mentions_column",
+        "value": "segment",
+        "hint": "Include segment in the SELECT list."
+      }
+    }
+  ]
+}

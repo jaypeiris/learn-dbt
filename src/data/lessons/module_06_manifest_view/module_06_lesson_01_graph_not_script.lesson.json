@@ -1,0 +1,58 @@
+{
+  "id": "module-06-lesson-01-graph-not-script",
+  "title": "Lesson 1 - dbt builds a graph, not a script",
+  "summary": "This fact model is disconnected. Attach it to the graph with ref().",
+  "description": "Our frozen example manifest is a teaching prop. Right now the fact model below points straight at a raw table, so the manifest shows it as an isolated node. Replace the table reference with the intermediate model to connect it to the graph.",
+  "concept": "dbt reads files, extracts refs, and builds a dependency graph. No refs, no edges.",
+  "starter_state": "Disconnected node",
+  "hint": "Swap `raw.orders` for `{{ ref('int_orders_enriched') }}` in the FROM clause.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The fact model now reports a ref, so the manifest draws a line from int_orders_enriched to this node."
+    },
+    {
+      "title": "What dbt learns",
+      "body": "dbt can order builds correctly because it sees this dependency inside the graph."
+    }
+  ],
+  "takeaway": "If dbt cannot see a ref, the graph forgets that relationship.",
+  "models": [
+    {
+      "id": "module06_lesson01_int_orders",
+      "title": "int_orders_enriched (context)",
+      "description": "Read-only node already present in the example manifest.",
+      "editable": false,
+      "sql": "select\n  order_id,\n  order_total,\n  customer_id\nfrom {{ ref('stg_orders') }}"
+    },
+    {
+      "id": "module06_lesson01_fct_orders",
+      "title": "fct_orders_manifest_node",
+      "description": "Editable fact node that still points to a raw table, so the manifest shows no upstream.",
+      "editable": true,
+      "sql": "select\n  order_id,\n  order_total,\n  customer_id\nfrom raw.orders -- TODO: connect this to the project graph"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module06_lesson01_add-ref",
+      "prompt": "Replace the raw table with `ref('int_orders_enriched')` so dbt can draw the correct edge.",
+      "check": {
+        "type": "includes_ref",
+        "value": "int_orders_enriched",
+        "hint": "Graph edges only appear when the SQL uses ref('model_name')."
+      }
+    }
+  ],
+  "annotations": {
+    "docs": [
+      {
+        "label": "Example manifest",
+        "description": "This frozen manifest only exists to show how dbt represents a project internally."
+      }
+    ]
+  },
+  "features": {
+    "showManifestExplorer": true
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "id": "module-02-lesson-05-layers-change",
+  "title": "Lesson 5 — Layers help people reason about change",
+  "summary": "The mart still pulls customer names from the raw table.",
+  "description": "Structure keeps the mental model clear, so you know where to add logic or leave things untouched. When you need to refactor or change logic, layers make impact analysis straightforward.",
+  "concept": "This makes changes easier later: each layer has a job, so edits stay scoped.",
+  "starter_state": "Layer confusion",
+  "hint": "Join customer names from {{ ref('stg_customers') }} instead of raw_orders.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "Every layer now references the one below it—no shortcuts back to raw."
+    },
+    {
+      "title": "Why this matters",
+      "body": "When layers stay in order, you always know where to fix logic without breaking downstream models."
+    },
+    {
+      "title": "Refactoring across layers",
+      "body": "When you need to change logic: identify which layer owns it (staging = renaming, intermediate = enrichment, mart = metrics), update that layer only, and test downstream models. The layer structure makes impact analysis clear—if you change staging, you know all intermediate and mart models might be affected."
+    },
+    {
+      "title": "Testing strategy for layer changes",
+      "body": "After refactoring a layer: run tests on that layer first, then validate downstream models still work, and check that business metrics haven't changed unexpectedly. Layers isolate risk—a staging change shouldn't break mart logic if intermediate layers are correct."
+    }
+  ],
+  "takeaway": "Stay in your lane: mart logic should lean on the curated layers beneath it.",
+  "models": [
+    {
+      "id": "module02_lesson05_raw_orders",
+      "title": "raw_orders",
+      "description": "Raw extract. Usually read via a source configuration.",
+      "editable": false,
+      "sql": "select order_id, created_ts, customer_id\nfrom {{ source('raw', 'orders') }}"
+    },
+    {
+      "id": "module02_lesson05_stg_orders",
+      "title": "stg_orders",
+      "description": "Staging layer that reads directly from raw_orders.",
+      "editable": false,
+      "sql": "select order_id, cast(created_ts as timestamp) as created_at, customer_id\nfrom {{ ref('raw_orders') }}"
+    },
+    {
+      "id": "module02_lesson05_stg_customers",
+      "title": "stg_customers",
+      "description": "Staging layer for customer attributes.",
+      "editable": false,
+      "sql": "select customer_id, customer_name\nfrom {{ source('raw', 'customers') }}"
+    },
+    {
+      "id": "module02_lesson05_int_orders",
+      "title": "int_orders_enriched",
+      "description": "Intermediate layer that prepares business-friendly columns.",
+      "editable": false,
+      "sql": "select order_id, created_at, customer_id, total_amount\nfrom {{ ref('stg_orders') }}"
+    },
+    {
+      "id": "module02_lesson05_mart_orders",
+      "title": "mart_orders_story",
+      "description": "Editable mart that should use only curated layers.",
+      "editable": true,
+      "sql": "select\n  m.order_id,\n  m.created_at,\n  c.customer_name\nfrom {{ ref('int_orders_enriched') }} m\nleft join raw.customers c on c.customer_id = m.customer_id"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module02_lesson05_ref_customers",
+      "prompt": "Reference stg_customers for the customer_name join.",
+      "check": {
+        "type": "includes_ref",
+        "value": "stg_customers",
+        "hint": "Use {{ ref('stg_customers') }} instead of joining raw data."
+      }
+    }
+  ]
+}

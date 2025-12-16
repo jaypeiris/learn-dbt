@@ -1,0 +1,63 @@
+{
+  "id": "module-05-lesson-05-when-to-use-snapshots",
+  "title": "Lesson 5 - When to reach for snapshots",
+  "summary": "Decide if this analysis needs the snapshot or if today's model is enough.",
+  "description": "The downstream analysis is trying to answer when customer status changed, but it is still pointed at dim_customers. Use the snapshot only if the question truly needs history.",
+  "concept": "Snapshots add meaning when history matters and someone will ask 'when did this change?'.",
+  "starter_state": "Analysis ignoring change",
+  "hint": "Join or select from `snap_customer_status` so the analysis can reference change over time.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "You connected the analysis to the snapshot, so it can now reason about multiple versions of the same customer."
+    },
+    {
+      "title": "Why this matters",
+      "body": "dbt now knows that answering this question requires the snapshot, so it will build and surface history before the mart runs."
+    }
+  ],
+  "takeaway": "Reach for snapshots only when the question is about change over time.",
+  "models": [
+    {
+      "id": "module05_lesson05_source",
+      "title": "source_customer_status",
+      "description": "Upstream events producing status updates.",
+      "editable": false,
+      "sql": "select\n  customer_id,\n  status,\n  updated_at\nfrom {{ source('raw', 'customer_status') }}"
+    },
+    {
+      "id": "module05_lesson05_snapshot",
+      "title": "snap_customer_status",
+      "description": "Snapshot capturing how status changes.",
+      "editable": false,
+      "variant": "snapshot",
+      "sql": "select\n  customer_id,\n  status,\n  updated_at as dbt_valid_from\nfrom {{ ref('source_customer_status') }}"
+    },
+    {
+      "id": "module05_lesson05_analysis",
+      "title": "status_change_story",
+      "description": "Editable analysis model that still ignores the snapshot.",
+      "editable": true,
+      "sql": "select\n  customer_id,\n  status\nfrom {{ ref('dim_customers') }} -- TODO: this only knows the latest value"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module05_lesson05_use-snapshot",
+      "prompt": "Update `status_change_story` so it references `snap_customer_status` when answering the question.",
+      "check": {
+        "type": "includes_ref",
+        "value": "snap_customer_status",
+        "hint": "If the question is about change, the snapshot must be part of the lineage."
+      }
+    }
+  ],
+  "annotations": {
+    "snapshots": [
+      {
+        "label": "Intentional complexity",
+        "description": "Only add the snapshot dependency when the question truly needs history."
+      }
+    ]
+  }
+}

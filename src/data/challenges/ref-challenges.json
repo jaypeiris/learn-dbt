@@ -1,0 +1,62 @@
+{
+  "id": "ref-mastery",
+  "title": "ref() Mastery",
+  "description": "Practice replacing hardcoded table names with ref() to create dependencies",
+  "challenges": [
+    {
+      "id": "fix-ref-basic",
+      "type": "fix_ref",
+      "title": "Replace hardcoded tables",
+      "difficulty": "beginner",
+      "timeEstimate": "5 min",
+      "description": "This model references tables directly instead of using ref(). Fix it.",
+      "scenario": "You joined a team and found this model. It works, but dbt can't see the dependencies.",
+      "starterSql": "select\n  o.order_id,\n  o.customer_id,\n  c.customer_name,\n  o.order_total\nfrom raw_data.orders as o\nleft join raw_data.customers as c\n  on o.customer_id = c.customer_id\nwhere o.order_status = 'completed'",
+      "checks": [
+        {
+          "type": "includes_ref",
+          "value": "orders",
+          "hint": "Use ref('orders') instead of the hardcoded table name"
+        },
+        {
+          "type": "includes_ref",
+          "value": "customers",
+          "hint": "Use ref('customers') instead of the hardcoded table name"
+        }
+      ],
+      "explanation": "By using ref(), dbt now knows this model depends on 'orders' and 'customers'. It will build those first.",
+      "hint": "Replace table names like 'raw_data.orders' with {{ ref('orders') }}",
+      "tags": ["ref", "dependencies", "beginner"]
+    },
+    {
+      "id": "fix-ref-nested",
+      "type": "fix_ref",
+      "title": "Fix nested dependencies",
+      "difficulty": "intermediate",
+      "timeEstimate": "7 min",
+      "description": "Multiple hardcoded references across CTEs need to be fixed",
+      "scenario": "This model has multiple CTEs with hardcoded tables. Make dbt aware of all dependencies.",
+      "starterSql": "with orders as (\n  select * from analytics.stg_orders\n),\n\norder_items as (\n  select * from analytics.stg_order_items\n),\n\nproducts as (\n  select * from analytics.stg_products\n),\n\njoined as (\n  select\n    o.order_id,\n    oi.product_id,\n    p.product_name,\n    oi.quantity * p.price as line_total\n  from orders as o\n  inner join order_items as oi\n    on o.order_id = oi.order_id\n  inner join products as p\n    on oi.product_id = p.product_id\n)\n\nselect * from joined",
+      "checks": [
+        {
+          "type": "includes_ref",
+          "value": "stg_orders",
+          "hint": "Reference stg_orders using ref()"
+        },
+        {
+          "type": "includes_ref",
+          "value": "stg_order_items",
+          "hint": "Reference stg_order_items using ref()"
+        },
+        {
+          "type": "includes_ref",
+          "value": "stg_products",
+          "hint": "Reference stg_products using ref()"
+        }
+      ],
+      "explanation": "All three staging models are now properly referenced. dbt will build them before this model.",
+      "hint": "Each CTE should use ref() instead of schema.table notation",
+      "tags": ["ref", "cte", "intermediate"]
+    }
+  ]
+}

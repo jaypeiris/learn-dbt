@@ -1,0 +1,48 @@
+{
+  "id": "module-05-lesson-01-current-vs-historical",
+  "title": "Lesson 1 - Current state vs historical state",
+  "summary": "Fix the model so it really represents today.",
+  "description": "The starter SQL accidentally points dim_customers at a snapshot, which means it is pretending to be history. Make it use the staging model so it only shows what is true right now.",
+  "concept": "This model exists to show that most dbt models overwrite old values and only care about the latest state.",
+  "starter_state": "Pointing at history",
+  "hint": "Swap the `ref` so it pulls from `stg_customers`. Snapshots are for history, models for today.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "dim_customers now depends on the staging model, so it only includes the latest record for each customer."
+    },
+    {
+      "title": "Why this matters",
+      "body": "dbt now understands that this model is part of the current-state layer, not a historical log."
+    }
+  ],
+  "takeaway": "Models keep today’s truth; snapshots remember the past.",
+  "models": [
+    {
+      "id": "module05_lesson01_dim_customers",
+      "title": "dim_customers (should show today)",
+      "description": "Editable model that mistakenly points to a snapshot.",
+      "editable": true,
+      "sql": "select\n  customer_id,\n  current_email,\n  status\nfrom {{ ref('snap_customers_history') }}\nwhere is_current = true"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module05_lesson01_fix-ref",
+      "prompt": "Replace the snapshot reference with `ref('stg_customers')` so this model only represents the current state.",
+      "check": {
+        "type": "includes_ref",
+        "value": "stg_customers",
+        "hint": "Models that describe today should read from staging tables, not snapshots."
+      }
+    }
+  ],
+  "annotations": {
+    "snapshots": [
+      {
+        "label": "Current state",
+        "description": "Only the latest record survives in this model."
+      }
+    ]
+  }
+}

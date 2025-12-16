@@ -1,0 +1,93 @@
+.manifest-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.manifest-hero {
+  background: #112b25;
+  color: #f1f9f5;
+  border-radius: 1.2rem;
+  padding: 1.5rem;
+}
+
+.manifest-hero dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 0;
+}
+
+.manifest-hero dt {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9fd6c6;
+}
+
+.manifest-hero dd {
+  margin: 0.2rem 0 0;
+  font-size: 1rem;
+}
+
+.manifest-grid {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.manifest-grid aside {
+  min-width: 240px;
+}
+
+.manifest-grid ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.manifest-node {
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid #d9e6df;
+  background: #fff;
+  padding: 0.75rem;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.manifest-node.active {
+  border-color: #266d57;
+  background: #e5f6ef;
+}
+
+.manifest-node .tag {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #4b5f59;
+}
+
+.manifest-graph {
+  flex: 1;
+  min-width: 320px;
+  background: #fff;
+  border: 1px solid #e1ebe5;
+  border-radius: 1.2rem;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.manifest-notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}

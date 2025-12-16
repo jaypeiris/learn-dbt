@@ -1,0 +1,40 @@
+{
+  "id": "module-04-lesson-03-documentation",
+  "title": "Lesson 3 — Why documentation exists in dbt",
+  "summary": "This model has no description.",
+  "description": "Documentation answers “what is this?” so teams do not reverse engineer the SQL.",
+  "concept": "This makes the model understandable by pairing plain language with code.",
+  "starter_state": "No docstring",
+  "hint": "Add a comment like `-- doc: This model surfaces daily bookings` at the top.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The model now tells future readers what it represents."
+    },
+    {
+      "title": "What dbt learns",
+      "body": "dbt includes this description in docs generation so everyone sees the intent."
+    }
+  ],
+  "takeaway": "Documentation explains intent; SQL explains mechanics.",
+  "models": [
+    {
+      "id": "module04_lesson03_fct_orders",
+      "title": "fct_orders",
+      "description": "Editable fact model missing its description.",
+      "editable": true,
+      "sql": "select\n  order_id,\n  customer_id,\n  order_total,\n  order_date\nfrom {{ ref('stg_orders') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module04_lesson03_doc",
+      "prompt": "Add a doc comment describing why this model exists.",
+      "check": {
+        "type": "contains_text",
+        "value": "doc:",
+        "hint": "Include `-- doc:` followed by a plain-language summary."
+      }
+    }
+  ]
+}

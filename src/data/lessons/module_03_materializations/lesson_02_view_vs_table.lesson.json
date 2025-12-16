@@ -1,0 +1,44 @@
+{
+  "id": "module-03-lesson-02-view-vs-table",
+  "title": "Lesson 2 — View vs table (conceptual)",
+  "summary": "This mart is still configured as a view.",
+  "description": "Toggle between view and table to notice that the SQL stays the same. Only the materialization config changes—the SELECT statement remains identical.",
+  "concept": "This affects how the result is stored: dbt would create a table instead of a view.",
+  "starter_state": "Incorrect persistence",
+  "hint": "Change the config to `materialized='table'` so dbt stores the results.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "dbt will now materialize a table, so downstream queries read a persisted dataset."
+    },
+    {
+      "title": "Why this matters",
+      "body": "Views are definitions; tables store results. Pick the one that matches your intent."
+    },
+    {
+      "title": "The same SQL, different objects",
+      "body": "Notice how changing `materialized='view'` to `materialized='table'` doesn't touch the SELECT statement. The SQL logic stays identical—only the warehouse object type changes. This is the power of materializations: you write SQL once, and dbt creates the right object type based on your config."
+    }
+  ],
+  "takeaway": "Views describe, tables persist.",
+  "models": [
+    {
+      "id": "module03_lesson02_table_demo",
+      "title": "orders_table",
+      "description": "Starter config still says view.",
+      "editable": true,
+      "sql": "{{ config(materialized='view') }}\n\nselect\n  order_id,\n  order_date\nfrom {{ ref('stg_orders') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module03_lesson02_table_config",
+      "prompt": "Set materialized='table' to show a stored object.",
+      "check": {
+        "type": "materialization",
+        "value": "table",
+        "hint": "Use config(materialized='table') to demonstrate persistence."
+      }
+    }
+  ]
+}

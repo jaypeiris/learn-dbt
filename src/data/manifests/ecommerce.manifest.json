@@ -1,0 +1,60 @@
+{
+  "metadata": {
+    "projectName": "demo_ecommerce",
+    "generatedAt": "2024-11-01T10:00:00",
+    "adapterType": "postgres"
+  },
+  "nodes": [
+    {
+      "uniqueId": "model.demo_ecommerce.stg_orders",
+      "name": "stg_orders",
+      "resourceType": "model",
+      "description": "Cleans raw order extracts.",
+      "dependsOn": ["source.demo_ecommerce.raw_orders"],
+      "tags": ["staging"],
+      "materialization": "view"
+    },
+    {
+      "uniqueId": "model.demo_ecommerce.stg_customers",
+      "name": "stg_customers",
+      "resourceType": "model",
+      "description": "Shapes customer info.",
+      "dependsOn": ["source.demo_ecommerce.raw_customers"],
+      "tags": ["staging"],
+      "materialization": "view"
+    },
+    {
+      "uniqueId": "model.demo_ecommerce.int_customer_profile",
+      "name": "int_customer_profile",
+      "resourceType": "model",
+      "description": "Intermediate join of customer stats.",
+      "dependsOn": [
+        "model.demo_ecommerce.stg_orders",
+        "model.demo_ecommerce.stg_customers"
+      ],
+      "tags": ["intermediate"],
+      "materialization": "table"
+    },
+    {
+      "uniqueId": "model.demo_ecommerce.int_order_enrichments",
+      "name": "int_order_enrichments",
+      "resourceType": "model",
+      "description": "Adds loyalty details to orders.",
+      "dependsOn": ["model.demo_ecommerce.stg_orders"],
+      "tags": ["intermediate"],
+      "materialization": "table"
+    },
+    {
+      "uniqueId": "model.demo_ecommerce.mart_orders_overview",
+      "name": "mart_orders_overview",
+      "resourceType": "model",
+      "description": "Final mart consumed by dashboards.",
+      "dependsOn": [
+        "model.demo_ecommerce.int_order_enrichments",
+        "model.demo_ecommerce.int_customer_profile"
+      ],
+      "tags": ["mart"],
+      "materialization": "table"
+    }
+  ]
+}

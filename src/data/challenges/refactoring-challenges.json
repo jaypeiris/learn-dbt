@@ -1,0 +1,57 @@
+{
+  "id": "refactoring-mastery",
+  "title": "Model Refactoring",
+  "description": "Break apart god models and improve project structure",
+  "challenges": [
+    {
+      "id": "split-god-model",
+      "type": "split_model",
+      "title": "Split the god model",
+      "difficulty": "advanced",
+      "timeEstimate": "15 min",
+      "description": "This 200-line monster does everything. Break it into logical pieces.",
+      "scenario": "A teammate said 'I can't understand what customer_metrics does.' It does too much.",
+      "starterSql": "-- This model does EVERYTHING\n-- It should be 3-4 separate models\n\nwith raw_orders as (\n  select * from {{ ref('stg_orders') }}\n),\n\nraw_customers as (\n  select * from {{ ref('stg_customers') }}\n),\n\n-- First aggregation: customer order stats\ncustomer_orders as (\n  select\n    customer_id,\n    count(*) as order_count,\n    sum(order_total) as lifetime_value,\n    min(order_date) as first_order_date,\n    max(order_date) as last_order_date\n  from raw_orders\n  group by customer_id\n),\n\n-- Second aggregation: customer behavior segments\ncustomer_segments as (\n  select\n    customer_id,\n    case\n      when order_count >= 10 then 'champion'\n      when order_count >= 5 then 'loyal'\n      when order_count >= 2 then 'repeat'\n      else 'one_time'\n    end as segment\n  from customer_orders\n),\n\n-- Third calculation: recency scoring\nrecency_scores as (\n  select\n    customer_id,\n    datediff(day, last_order_date, current_date) as days_since_last_order,\n    case\n      when datediff(day, last_order_date, current_date) <= 30 then 'active'\n      when datediff(day, last_order_date, current_date) <= 90 then 'at_risk'\n      else 'churned'\n    end as recency_status\n  from customer_orders\n),\n\n-- Final join of everything\nfinal as (\n  select\n    c.customer_id,\n    c.customer_name,\n    co.order_count,\n    co.lifetime_value,\n    cs.segment,\n    rs.recency_status\n  from raw_customers as c\n  left join customer_orders as co using (customer_id)\n  left join customer_segments as cs using (customer_id)\n  left join recency_scores as rs using (customer_id)\n)\n\nselect * from final",
+      "checks": [
+        {
+          "type": "includes_ref",
+          "value": "int_customer_orders",
+          "hint": "Extract customer order aggregations"
+        },
+        {
+          "type": "includes_ref",
+          "value": "int_customer_segments",
+          "hint": "Extract segmentation logic"
+        },
+        {
+          "type": "includes_ref",
+          "value": "int_customer_recency",
+          "hint": "Extract recency calculations"
+        }
+      ],
+      "explanation": "This god model does three distinct things: (1) aggregate orders, (2) segment customers, (3) score recency. Each should be its own intermediate model. The final mart then becomes a simple join of these three models. This makes each piece testable, reusable, and understandable.",
+      "hint": "Create three ref() calls: int_customer_orders, int_customer_segments, int_customer_recency. The mart joins them.",
+      "tags": ["refactoring", "god-model", "intermediate", "architecture"]
+    },
+    {
+      "id": "extract-reusable-logic",
+      "type": "split_model",
+      "title": "Extract reusable calculation",
+      "difficulty": "intermediate",
+      "timeEstimate": "10 min",
+      "description": "This calculation appears in 3 models. Extract it once.",
+      "scenario": "You copy-pasted revenue calculations across models. Time to DRY it up.",
+      "starterSql": "-- This revenue calculation logic is duplicated in 3 other marts\n-- Extract it to an intermediate model\n\nselect\n  order_id,\n  customer_id,\n  \n  -- This complex revenue calc appears everywhere\n  case\n    when discount_code is not null then\n      (order_subtotal * (1 - discount_percent/100)) + shipping_cost\n    else\n      order_subtotal + shipping_cost\n  end as final_revenue,\n  \n  order_date\nfrom {{ ref('stg_orders') }}",
+      "checks": [
+        {
+          "type": "includes_ref",
+          "value": "int_order_revenue",
+          "hint": "Create int_order_revenue with the calculation"
+        }
+      ],
+      "explanation": "When the same calculation appears in multiple models, extract it to an intermediate model. This ensures consistency (everyone uses the same revenue logic), makes it testable once, and serves as documentation of how revenue is calculated.",
+      "hint": "Replace the CASE statement with: {{ ref('int_order_revenue') }} and select final_revenue from it",
+      "tags": ["refactoring", "dry", "intermediate", "reusability"]
+    }
+  ]
+}

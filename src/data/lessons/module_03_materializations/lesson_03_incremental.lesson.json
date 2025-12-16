@@ -1,0 +1,52 @@
+{
+  "id": "module-03-lesson-03-incremental",
+  "title": "Lesson 3 — Incremental models (conceptual)",
+  "summary": "This model still uses the default materialization.",
+  "description": "Incremental models add new rows over time. They build differently on the first run versus subsequent runs.",
+  "concept": "This model exists as an incremental table so dbt can focus on recent data after the first build.",
+  "starter_state": "Full rebuild",
+  "hint": "Update the config to `materialized='incremental'`.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "dbt now knows it can append data instead of recreating the whole table."
+    },
+    {
+      "title": "Why this matters",
+      "body": "Incremental materializations make sense when change happens over time."
+    },
+    {
+      "title": "Incremental timeline: first build",
+      "body": "On the first run, dbt builds the entire table from scratch—just like a regular table materialization. This creates the baseline dataset."
+    },
+    {
+      "title": "Incremental timeline: subsequent builds",
+      "body": "On later runs, dbt only processes new or changed rows. It uses a filter (like `where order_date > (select max(order_date) from this_table)`) to identify what's new, then appends only those rows. This makes rebuilds much faster."
+    },
+    {
+      "title": "How incremental strategy filters",
+      "body": "dbt needs you to define how to identify new rows—usually with a timestamp or date column. The incremental strategy uses this to filter: `where order_date > last_max_date`. Only rows matching this filter get processed and appended."
+    }
+  ],
+  "takeaway": "Incremental == remember history without a full rebuild.",
+  "models": [
+    {
+      "id": "module03_lesson03_incremental_demo",
+      "title": "orders_incremental",
+      "description": "Starter config missing the incremental declaration.",
+      "editable": true,
+      "sql": "{{ config(materialized='table') }}\n\nselect\n  order_id,\n  order_date\nfrom {{ ref('stg_orders') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module03_lesson03_incremental_config",
+      "prompt": "Set materialized='incremental'.",
+      "check": {
+        "type": "materialization",
+        "value": "incremental",
+        "hint": "Use config(materialized='incremental'). No is_incremental logic required."
+      }
+    }
+  ]
+}

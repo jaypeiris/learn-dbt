@@ -1,0 +1,45 @@
+{
+  "id": "grain-mistakes",
+  "title": "Grain & Join Mistakes",
+  "description": "Incorrect joins that cause duplicates or wrong aggregations",
+  "mistakes": [
+    {
+      "id": "fanout-join",
+      "title": "The fanout join explosion",
+      "category": "grain",
+      "severity": "critical",
+      "description": "Joining one-to-many on both sides causes row multiplication and inflated metrics",
+      "symptoms": [
+        "Revenue is 10x higher than reality",
+        "Row counts explode unexpectedly",
+        "Metrics don't add up when you drill down",
+        "Dashboard numbers don't match source systems"
+      ],
+      "brokenCode": "-- MISTAKE: Many-to-many join causing fanout\n\nselect\n  c.customer_id,\n  c.customer_name,\n  sum(o.order_total) as total_revenue,  -- WRONG\n  count(st.ticket_id) as support_tickets\nfrom {{ ref('stg_customers') }} as c\nleft join {{ ref('stg_orders') }} as o\n  on c.customer_id = o.customer_id\nleft join {{ ref('stg_support_tickets') }} as st\n  on c.customer_id = st.customer_id\ngroup by 1, 2\n\n-- If customer has 2 orders and 3 tickets:\n-- Before aggregation: 6 rows (2 orders × 3 tickets)\n-- Revenue is counted 3 times (once per ticket)\n-- Result: Revenue is 3x too high",
+      "whyBad": "The join creates a cross product. Customer with 2 orders and 3 tickets creates 6 rows before aggregation. Each order appears 3 times (once per ticket), so sum(order_total) counts each order 3 times. Your revenue is wildly inflated.",
+      "fixedCode": "-- FIXED: Pre-aggregate to customer level first\n\n-- intermediate/int_customer_orders.sql\nselect\n  customer_id,\n  sum(order_total) as total_revenue,\n  count(*) as order_count\nfrom {{ ref('stg_orders') }}\ngroup by customer_id\n\n-- intermediate/int_customer_support.sql\nselect\n  customer_id,\n  count(*) as support_tickets\nfrom {{ ref('stg_support_tickets') }}\ngroup by customer_id\n\n-- marts/mart_customer_summary.sql\nselect\n  c.customer_id,\n  c.customer_name,\n  co.total_revenue,  -- Correct now\n  cs.support_tickets\nfrom {{ ref('stg_customers') }} as c\nleft join {{ ref('int_customer_orders') }} as co\n  using (customer_id)\nleft join {{ ref('int_customer_support') }} as cs\n  using (customer_id)",
+      "explanation": "Pre-aggregate each many-to-many relationship separately to the target grain (customer). Then join the aggregated results. No fanout, no duplication, correct numbers.",
+      "prevention": "Before joining: Ask 'What's the grain of each table?' If both are many-to-one with the target, pre-aggregate first.",
+      "tags": ["fanout", "grain", "joins", "aggregation"]
+    },
+    {
+      "id": "undeclared-grain",
+      "title": "Mystery grain",
+      "category": "grain",
+      "severity": "major",
+      "description": "Model doesn't declare its grain, making it impossible to join correctly",
+      "symptoms": [
+        "Teammates ask 'what's the grain of this model?'",
+        "Joins produce unexpected row counts",
+        "No one knows if duplicates are bugs or features",
+        "Testing is impossible (can't test uniqueness without knowing grain)"
+      ],
+      "brokenCode": "-- MISTAKE: What's the grain? No one knows.\n\nselect\n  user_id,\n  event_type,\n  event_date,\n  count(*) as event_count\nfrom {{ ref('stg_events') }}\ngroup by 1, 2, 3\n\n-- Questions no one can answer:\n-- - Is this one row per user? (No, multiple rows per user)\n-- - One row per day? (No, multiple event types per day)\n-- - One row per event type? (No, multiple days per type)\n-- - What's the grain? (user + event_type + date)",
+      "whyBad": "Without declared grain, every downstream join is a guess. Teammates have to reverse-engineer the SQL to understand the grain. Tests can't verify uniqueness. Documentation is impossible.",
+      "fixedCode": "-- FIXED: Declare the grain explicitly\n\n-- Grain: one row per user per event_type per day\n-- Primary key: (user_id, event_type, event_date)\n\nselect\n  user_id,\n  event_type,\n  event_date,\n  count(*) as event_count\nfrom {{ ref('stg_events') }}\ngroup by 1, 2, 3\n\n-- Now tests can verify:\n-- - unique(user_id, event_type, event_date)\n-- - Downstream knows how to join",
+      "explanation": "A simple comment makes grain explicit. Now everyone knows what this model represents. Tests can verify uniqueness. Joins are confident, not guesses.",
+      "prevention": "Every model should have a grain comment. Ask: 'One row per ___?' Fill in the blank.",
+      "tags": ["grain", "documentation", "primary-key"]
+    }
+  ]
+}

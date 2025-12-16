@@ -1,0 +1,40 @@
+{
+  "id": "module-04-lesson-02-tests-live-with-models",
+  "title": "Lesson 2 — Tests live next to models",
+  "summary": "The status column still lacks an attached expectation.",
+  "description": "dbt keeps tests right beside the model definition so meaning and correctness move together.",
+  "concept": "This makes assumptions visible right where the SQL lives.",
+  "starter_state": "No expectation declared",
+  "hint": "Add a comment like `-- test:accepted_values status in ('paid','pending')` near the SELECT.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "The model now explains which values are acceptable for status."
+    },
+    {
+      "title": "What dbt learns",
+      "body": "dbt records this expectation and runs the test after the model builds."
+    }
+  ],
+  "takeaway": "Attach tests where the model lives, not in a separate notebook.",
+  "models": [
+    {
+      "id": "module04_lesson02_stg_payments",
+      "title": "stg_payments",
+      "description": "Editable staging model missing its status expectations.",
+      "editable": true,
+      "sql": "select\n  payment_id,\n  order_id,\n  status,\n  created_at\nfrom {{ source('raw', 'payments') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module04_lesson02_status_values",
+      "prompt": "Declare accepted values for status (e.g., `-- test:accepted_values status`).",
+      "check": {
+        "type": "contains_text",
+        "value": "test:accepted_values status",
+        "hint": "Mention the accepted values in the comment."
+      }
+    }
+  ]
+}

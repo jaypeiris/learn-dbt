@@ -1,0 +1,40 @@
+{
+  "id": "module-01-lesson-02-why-ref",
+  "title": "Lesson 2 - Why ref() exists",
+  "summary": "Swap the hardcoded table for ref('orders') so dbt sees lineage.",
+  "description": "This model simulates an analyst copying warehouse SQL into dbt without adapting it. Until you call ref(), dbt has no idea what this file depends on.",
+  "concept": "ref() replaces physical table names with dependency awareness.",
+  "starterState": "Hardcoded table",
+  "hint": "Replace analytics.orders with {{ ref('orders') }} so dbt can manage the dependency.",
+  "revealSections": [
+    {
+      "title": "What dbt learned",
+      "body": "As soon as ref('orders') appears, the lineage graph shows that this model waits on orders before building."
+    },
+    {
+      "title": "Why hardcoding breaks refactoring",
+      "body": "Pointing at analytics.orders pins you to one schema. With ref(), renaming the upstream model or rebuilding environments just works."
+    }
+  ],
+  "takeaway": "ref() is how dbt sees dependencies.",
+  "models": [
+    {
+      "id": "module01_lesson02_orders",
+      "title": "orders_rollup",
+      "description": "Fix the dependency so the lineage graph is no longer empty.",
+      "editable": true,
+      "sql": "select *\nfrom analytics.orders"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module01-lesson02-must-use-ref",
+      "prompt": "Call ref('orders') instead of hardcoding analytics.orders.",
+      "check": {
+        "type": "includes_ref",
+        "value": "orders",
+        "hint": "Use {{ ref('orders') }} so dbt can order builds automatically."
+      }
+    }
+  ]
+}

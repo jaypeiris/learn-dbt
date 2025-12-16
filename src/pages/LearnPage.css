@@ -1,0 +1,135 @@
+.learn-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 2rem 0;
+  min-height: calc(100vh - 200px);
+}
+
+.learn-sidebar {
+  flex-shrink: 0;
+}
+
+.learn-main {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(240px, 1fr);
+  gap: 2rem;
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  margin-left: 0;
+}
+
+.lesson-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  max-width: 1000px;
+}
+
+.lesson-lineage {
+  padding: 1.5rem 0;
+  margin: 1rem 0;
+}
+
+.lineage-label {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.lesson-editor {
+  padding: 1rem 0;
+  margin-top: 1rem;
+}
+
+.lesson-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: var(--neutral-50);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--neutral-200);
+  align-self: flex-start;
+  position: sticky;
+  top: 100px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+.secondary-block {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+.secondary-block:last-child {
+  border-bottom: none;
+}
+
+.secondary-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.lesson-secondary > .manifest-explorer {
+  width: 100%;
+}
+
+.fallback-card {
+  border: 1px solid var(--neutral-200);
+  background: var(--neutral-0);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.placeholder-card {
+  border: 1px dashed var(--neutral-200);
+  background: var(--neutral-0);
+  border-radius: 0.9rem;
+  padding: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 1100px) {
+  .learn-layout {
+    flex-direction: column;
+  }
+
+  .learn-sidebar {
+    width: 100%;
+  }
+
+  .learn-main {
+    grid-template-columns: 1fr;
+    padding: 1.25rem;
+    margin-left: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .lesson-secondary {
+    flex-direction: row;
+    flex-wrap: wrap;
+    background: var(--neutral-0);
+    border: none;
+    padding: 0;
+  }
+
+  .secondary-block {
+    flex: 1 1 260px;
+    border-bottom: none;
+  }
+}

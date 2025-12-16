@@ -1,0 +1,67 @@
+{
+  "id": "module-02-lesson-02-staging-purpose",
+  "title": "Lesson 2 — Staging models are boring on purpose",
+  "summary": "This staging model forgot to standardise its timestamp.",
+  "description": "Staging tables standardise types and names without squeezing in business rules. This includes handling timestamp formats, timezone conversions, and type casting consistently.",
+  "concept": "This layer exists to keep logic simple so everyone knows what to expect.",
+  "starter_state": "Missing standardisation",
+  "hint": "Cast created_at to a date and call it order_date—no other logic belongs here.",
+  "reveal_sections": [
+    {
+      "title": "What changed",
+      "body": "Staging now emits a predictable order_date column that downstream models can trust."
+    },
+    {
+      "title": "Why this matters",
+      "body": "When staging casts and names columns consistently, intermediate and mart layers stay simple."
+    },
+    {
+      "title": "Timestamp handling patterns",
+      "body": "Staging models often handle: converting timestamps to dates (created_at → order_date), standardizing timezones (UTC conversion), and handling null timestamps (COALESCE or explicit nulls). These transformations happen once in staging, so downstream layers don't repeat the logic."
+    }
+  ],
+  "takeaway": "Staging exists to normalise, not to add business logic.",
+  "models": [
+    {
+      "id": "module02_lesson02_raw_orders",
+      "title": "raw_orders (context)",
+      "description": "Raw data with timestamp in different format and timezone.",
+      "editable": false,
+      "sql": "select\n  order_id,\n  created_at_timestamp,\n  customer_id\nfrom {{ source('raw', 'orders') }}"
+    },
+    {
+      "id": "module02_lesson02_stg_orders",
+      "title": "stg_orders_simple",
+      "description": "Starter SQL missing the order_date cast. Standardize the timestamp format.",
+      "editable": true,
+      "sql": "select\n  order_id,\n  created_at,\n  customer_id\nfrom {{ ref('raw_orders') }}"
+    },
+    {
+      "id": "module02_lesson02_example_timestamps",
+      "title": "Example: timestamp standardization (context)",
+      "description": "Common patterns: cast to date, convert timezone, handle nulls. Staging does this once.",
+      "editable": false,
+      "sql": "-- Common staging timestamp patterns:\n-- cast(created_at as date) as order_date\n-- convert_timezone('UTC', created_at) as created_at_utc\n-- coalesce(updated_at, created_at) as effective_date"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module02_lesson02_ref_raw",
+      "prompt": "Keep using {{ ref('raw_orders') }} to show where this model pulls from.",
+      "check": {
+        "type": "includes_ref",
+        "value": "raw_orders",
+        "hint": "Staging depends directly on the raw layer."
+      }
+    },
+    {
+      "id": "module02_lesson02_order_date",
+      "prompt": "Expose the order_date column so downstream models see the cleaned value.",
+      "check": {
+        "type": "contains_text",
+        "value": "cast(created_at as date) as order_date",
+        "hint": "Use aliases like order_date to keep naming consistent across the project."
+      }
+    }
+  ]
+}
