@@ -8,6 +8,18 @@
   ],
   "rewrites": [
     {
+      "source": "/learn_dbt/assets/:match*",
+      "destination": "/assets/:match*"
+    },
+    {
+      "source": "/learn_dbt/vite.svg",
+      "destination": "/vite.svg"
+    },
+    {
+      "source": "/learn_dbt/index.html",
+      "destination": "/index.html"
+    },
+    {
       "source": "/learn_dbt/:match*",
       "destination": "/index.html"
     }
