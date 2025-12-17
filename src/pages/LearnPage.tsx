@@ -129,37 +129,37 @@ export default function LearnPage() {
         />
       </aside>
       <section className="learn-main">
-        <div className="lesson-progress-banner">
-          <div className="lesson-progress-banner__meta">
-            <p className="section-label">Progress</p>
-            <div className="lesson-progress-banner__headline">
-              <strong>
-                {completedLessons.size} of {totalLessons} lessons
-              </strong>
-              <span>Currently on lesson {currentLessonNumber} of {totalLessons}</span>
-            </div>
-            <div
-              className="lesson-progress-banner__bar"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={progressPercent}
-            >
-              <span style={{ width: `${progressPercent}%` }} />
-            </div>
-          </div>
-          <div className="lesson-progress-banner__actions">
-            {!isCurrentLessonComplete && (
-              <button type="button" className="ghost-button" onClick={handleMarkComplete}>
-                Mark complete
-              </button>
-            )}
-            <button type="button" className="primary-button" onClick={handleNextLesson} disabled={!nextLessonId}>
-              {nextLessonId ? 'Next lesson' : 'All lessons done'}
-            </button>
-          </div>
-        </div>
         <div className="lesson-primary">
+          <div className="lesson-progress-banner">
+            <div className="lesson-progress-banner__meta">
+              <p className="section-label">Progress</p>
+              <div className="lesson-progress-banner__headline">
+                <strong>
+                  {completedLessons.size} of {totalLessons} lessons
+                </strong>
+                <span>Currently on lesson {currentLessonNumber} of {totalLessons}</span>
+              </div>
+              <div
+                className="lesson-progress-banner__bar"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={progressPercent}
+              >
+                <span style={{ width: `${progressPercent}%` }} />
+              </div>
+            </div>
+            <div className="lesson-progress-banner__actions">
+              {!isCurrentLessonComplete && (
+                <button type="button" className="ghost-button" onClick={handleMarkComplete}>
+                  Mark complete
+                </button>
+              )}
+              <button type="button" className="primary-button" onClick={handleNextLesson} disabled={!nextLessonId}>
+                {nextLessonId ? 'Next lesson' : 'All lessons done'}
+              </button>
+            </div>
+          </div>
           <LessonRenderer
             lesson={lesson}
             parsed={parsed}

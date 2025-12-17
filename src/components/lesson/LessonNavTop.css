@@ -1,7 +1,7 @@
 /* Modern LMS-style sidebar */
 .lesson-nav-sidebar {
-  width: 300px;
-  min-width: 280px;
+  width: 280px;
+  min-width: 240px;
   background: linear-gradient(180deg, var(--neutral-0), var(--brand-navy-50));
   border: 1px solid var(--neutral-200);
   display: flex;
