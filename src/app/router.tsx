@@ -9,8 +9,9 @@ import ProjectExplorerPage from '../pages/ProjectExplorerPage'
 import ManifestExplainerPage from '../pages/ManifestExplainerPage'
 import FoundationsPage from '../pages/FoundationsPage'
 import NextStepsPage from '../pages/NextStepsPage'
+import LandingPage from '../pages/LandingPage'
 
-export type RouteId = 'learn' | 'paths' | 'practice' | 'mistakes' | 'explain' | 'cheatsheets' | 'projects' | 'manifest' | 'foundations' | 'next'
+export type RouteId = 'landing' | 'learn' | 'paths' | 'practice' | 'mistakes' | 'explain' | 'cheatsheets' | 'projects' | 'manifest' | 'foundations' | 'next'
 
 export type RouteConfig = {
   id: RouteId
@@ -82,10 +83,17 @@ export const routes: RouteConfig[] = [
   },
 ]
 
-const DEFAULT_ROUTE: RouteId = 'learn'
+const DEFAULT_ROUTE: RouteId = 'landing'
 
 function parseHash(): RouteId {
-  const hashValue = window.location.hash.replace('#', '').replace('/', '')
+  const hash = window.location.hash
+  // If no hash or empty hash, show landing page
+  if (!hash || hash === '' || hash === '#') {
+    return 'landing'
+  }
+  // Remove # and leading slash
+  const hashValue = hash.replace(/^#\/?/, '')
+  if (!hashValue || hashValue === '') return 'landing'
   if (hashValue === 'learn') return 'learn'
   if (hashValue === 'paths') return 'paths'
   if (hashValue === 'practice') return 'practice'
@@ -124,6 +132,9 @@ type RouterViewProps = {
 }
 
 export function RouterView({ currentRoute }: RouterViewProps) {
+  if (currentRoute === 'landing') {
+    return <LandingPage />
+  }
   const route = routes.find((entry) => entry.id === currentRoute) ?? routes[0]
   return route.element
 }

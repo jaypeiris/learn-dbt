@@ -5,4 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/learn_dbt/',
+  build: {
+    outDir: 'dist/learn_dbt',
+    assetsDir: 'assets',
+  },
 })

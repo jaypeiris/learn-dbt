@@ -32,31 +32,35 @@ function App() {
     }
   }
 
+  const isLanding = currentRoute === 'landing'
+
   return (
     <div className="app-shell">
-      <header className="app-header">
-        <div className="brand">
-          <p className="brand-title">dbt learning studio</p>
-          <p className="brand-subtitle">Concept-first practice space</p>
-        </div>
-        <div className="header-actions">
-          <SearchBar onNavigate={handleSearchNavigation} />
-          <nav className="primary-nav" aria-label="Primary">
-            {navSections.map((section) => (
-              <button
-                type="button"
-                key={section.id}
-                className={section.id === currentSection ? 'nav-section active' : 'nav-section'}
-                onClick={() => handleSectionClick(section.id)}
-              >
-                {section.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </header>
+      {!isLanding && (
+        <header className="app-header">
+          <div className="brand">
+            <p className="brand-title">dbt learning studio</p>
+            <p className="brand-subtitle">Concept-first practice space</p>
+          </div>
+          <div className="header-actions">
+            <SearchBar onNavigate={handleSearchNavigation} />
+            <nav className="primary-nav" aria-label="Primary">
+              {navSections.map((section) => (
+                <button
+                  type="button"
+                  key={section.id}
+                  className={section.id === currentSection ? 'nav-section active' : 'nav-section'}
+                  onClick={() => handleSectionClick(section.id)}
+                >
+                  {section.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </header>
+      )}
 
-      {subRoutes.length > 1 && (
+      {!isLanding && subRoutes.length > 1 && (
         <nav className="sub-nav" aria-label="Secondary">
           <div className="sub-nav-container">
             {subRoutes.map((route) => (

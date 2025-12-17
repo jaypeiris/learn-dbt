@@ -57,6 +57,9 @@ export const navSections: NavSection[] = [
 ]
 
 export function getSectionForRoute(routeId: RouteId): SectionId {
+  if (routeId === 'landing') {
+    return 'learn'
+  }
   for (const section of navSections) {
     if (section.routes.some((r) => r.id === routeId)) {
       return section.id

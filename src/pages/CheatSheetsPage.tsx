@@ -275,19 +275,15 @@ function GrainSheet() {
 
       <section className="sheet-section">
         <h2>Declare Grain (Always!)</h2>
-        <div className="code-block">
-          <code>
-            -- Grain: one row per customer per day<br />
-            -- Primary key: (customer_id, event_date)<br />
-            <br />
-            select<br />
-            &nbsp;&nbsp;customer_id,<br />
-            &nbsp;&nbsp;event_date,<br />
-            &nbsp;&nbsp;sum(revenue) as daily_revenue<br />
-            from events<br />
-            group by 1, 2
-          </code>
-        </div>
+        <pre className="code-block"><code>{`-- Grain: one row per customer per day
+-- Primary key: (customer_id, event_date)
+
+select
+  customer_id,
+  event_date,
+  sum(revenue) as daily_revenue
+from events
+group by 1, 2`}</code></pre>
       </section>
 
       <section className="sheet-section">
@@ -638,8 +634,7 @@ function JinjaSheet() {
 
       <section className="sheet-section">
         <h2>Common Patterns</h2>
-        <div className="code-block">
-          <code>{`-- Conditional logic
+        <pre className="code-block"><code>{`-- Conditional logic
 {% if target.name == 'prod' %}
   from prod.raw_data
 {% else %}
@@ -658,8 +653,7 @@ function JinjaSheet() {
 {% for method in payment_methods %}
   sum(case when payment_method = '{{ method }}' then amount end) as {{ method }}_revenue
   {% if not loop.last %},{% endif %}
-{% endfor %}`}</code>
-        </div>
+{% endfor %}`.trim()}</code></pre>
       </section>
 
       <section className="sheet-section">
@@ -715,8 +709,7 @@ function JinjaSheet() {
 
       <section className="sheet-section">
         <h2>Simple Macro Example</h2>
-        <div className="code-block">
-          <code>{`-- macros/cents_to_dollars.sql
+        <pre className="code-block"><code>{`-- macros/cents_to_dollars.sql
 {% macro cents_to_dollars(column_name) %}
   round({{ column_name }} / 100.0, 2)
 {% endmacro %}
@@ -725,8 +718,7 @@ function JinjaSheet() {
 select
   order_id,
   {{ cents_to_dollars('amount_cents') }} as amount_dollars
-from {{ ref('stg_orders') }}`}</code>
-        </div>
+from {{ ref('stg_orders') }}`.trim()}</code></pre>
       </section>
     </div>
   )
@@ -959,7 +951,7 @@ function NamingSheet() {
 
       <section className="sheet-section">
         <h2>Folder Structure</h2>
-        <div className="code-block">
+        <pre className="code-block">
           <code>{`models/
 ├── staging/
 │   ├── stripe/
@@ -980,7 +972,7 @@ function NamingSheet() {
     │   └── dim_products.sql
     └── marketing/
         └── mart_customer_360.sql`}</code>
-        </div>
+        </pre>
       </section>
 
       <section className="sheet-section">
@@ -1098,8 +1090,7 @@ function IncrementalSheet() {
 
       <section className="sheet-section">
         <h2>Append Strategy</h2>
-        <div className="code-block">
-          <code>{`{{
+        <pre className="code-block"><code>{`{{
   config(
     materialized='incremental',
     unique_key='event_id',
@@ -1117,15 +1108,13 @@ from {{ source('analytics', 'raw_events') }}
 {% if is_incremental() %}
   -- Only process events since last run
   where occurred_at > (select max(occurred_at) from {{ this }})
-{% endif %}`}</code>
-        </div>
+{% endif %}`.trim()}</code></pre>
         <p><strong>Use when:</strong> Records never update after creation (event logs, immutable facts)</p>
       </section>
 
       <section className="sheet-section">
         <h2>Merge Strategy</h2>
-        <div className="code-block">
-          <code>{`{{
+        <pre className="code-block"><code>{`{{
   config(
     materialized='incremental',
     unique_key='order_id',
@@ -1144,15 +1133,13 @@ from {{ source('ecommerce', 'orders') }}
 {% if is_incremental() %}
   -- Get new and updated orders
   where updated_at > (select max(updated_at) from {{ this }})
-{% endif %}`}</code>
-        </div>
+{% endif %}`.trim()}</code></pre>
         <p><strong>Use when:</strong> Records can be updated (orders changing status, customer profiles)</p>
       </section>
 
       <section className="sheet-section">
         <h2>Delete+Insert Strategy</h2>
-        <div className="code-block">
-          <code>{`{{
+        <pre className="code-block"><code>{`{{
   config(
     materialized='incremental',
     unique_key='order_date',
@@ -1174,8 +1161,7 @@ from {{ ref('fct_orders') }}
   where order_date >= date_sub(current_date(), interval 7 day)
 {% endif %}
 
-group by order_date`}</code>
-        </div>
+group by order_date`.trim()}</code></pre>
         <p><strong>Use when:</strong> Daily/hourly aggregations where you want to reprocess recent partitions</p>
       </section>
 
