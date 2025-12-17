@@ -110,6 +110,9 @@ export default function LearnPage() {
     [modelName, parsed.refs, parsed.materialization, modelVariant],
   )
 
+  const hideLineageUntilRef =
+    selectedLessonId === 'module-01-capstone-make-dbt-see-model' && parsed.refs.length === 0
+
   if (!lesson) {
     return (
       <div className="fallback-card">
@@ -170,7 +173,13 @@ export default function LearnPage() {
           />
           <div className="lesson-lineage">
             <p className="lineage-label">Lineage reference</p>
-            <LineageGraph graph={graph} />
+            {hideLineageUntilRef ? (
+              <div className="placeholder-card">
+                Add <code>{'{{ ref(...) }}'}</code> calls to reveal lineage. Until dbt can see dependencies, the graph stays empty.
+              </div>
+            ) : (
+              <LineageGraph graph={graph} />
+            )}
           </div>
           <div className="lesson-editor">
             {lesson.models.length > 0 ? (
