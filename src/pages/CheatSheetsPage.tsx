@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './CheatSheetsPage.css'
 
-type CheatSheetId = 'layers' | 'grain' | 'materialization' | 'testing' | 'jinja' | 'commands' | 'github' | 'naming' | 'incremental'
+type CheatSheetId = 'layers' | 'grain' | 'materialization' | 'testing' | 'jinja' | 'commands' | 'github' | 'naming' | 'incremental' | 'sources-seeds' | 'packages' | 'hooks' | 'snapshots'
 
 const CHEAT_SHEETS = [
   {
@@ -67,6 +67,34 @@ const CHEAT_SHEETS = [
     description: 'When and how to use incremental models',
     icon: '⚡',
   },
+  {
+    id: 'sources-seeds' as CheatSheetId,
+    title: 'Sources & Seeds',
+    subtitle: 'Connect to raw data',
+    description: 'How to define sources, check freshness, and load CSV seeds',
+    icon: '🌱',
+  },
+  {
+    id: 'packages' as CheatSheetId,
+    title: 'dbt Packages',
+    subtitle: 'Essential packages',
+    description: 'Popular packages and how to install them',
+    icon: '📦',
+  },
+  {
+    id: 'hooks' as CheatSheetId,
+    title: 'Hooks & Operations',
+    subtitle: 'Run SQL before/after',
+    description: 'Use hooks and operations to run custom SQL',
+    icon: '🪝',
+  },
+  {
+    id: 'snapshots' as CheatSheetId,
+    title: 'Snapshots (SCD Type 2)',
+    subtitle: 'Track historical changes',
+    description: 'Capture slowly changing dimensions over time',
+    icon: '📸',
+  },
 ]
 
 export default function CheatSheetsPage() {
@@ -129,6 +157,10 @@ function CheatSheetDetail({ id, onBack }: { id: CheatSheetId; onBack: () => void
         {id === 'github' && <GitHubSheet />}
         {id === 'naming' && <NamingSheet />}
         {id === 'incremental' && <IncrementalSheet />}
+        {id === 'sources-seeds' && <SourcesSeedsSheet />}
+        {id === 'packages' && <PackagesSheet />}
+        {id === 'hooks' && <HooksSheet />}
+        {id === 'snapshots' && <SnapshotsSheet />}
       </div>
     </div>
   )
@@ -607,65 +639,231 @@ function JinjaSheet() {
     <div className="sheet">
       <header className="sheet-header">
         <h1>Jinja & Macros Cheat Sheet</h1>
-        <p className="sheet-tagline">Template your SQL with code</p>
+        <p className="sheet-tagline">Complete guide to templating in dbt</p>
       </header>
 
       <section className="sheet-section">
         <h2>Core Jinja Syntax</h2>
         <div className="patterns-grid">
           <div className="pattern-box">
-            <h4>Variables</h4>
-            <p className="pattern-key"><code>{`{{ variable_name }}`}</code></p>
-            <p>Output a value</p>
-            <code>{`{{ target.schema }}`}</code>
+            <h4>Expressions</h4>
+            <p className="pattern-key"><code>{`{{ ... }}`}</code></p>
+            <p>Display values and call functions</p>
+            <code>{`{{ ref('customers') }}`}</code>
           </div>
           <div className="pattern-box">
             <h4>Statements</h4>
-            <p className="pattern-key"><code>{`{% statement %}`}</code></p>
-            <p>Control flow logic</p>
-            <code>{`{% if ... %} {% endif %}`}</code>
+            <p className="pattern-key"><code>{`{% ... %}`}</code></p>
+            <p>Control flow (if, for, set)</p>
+            <code>{`{% if condition %} ... {% endif %}`}</code>
           </div>
           <div className="pattern-box">
             <h4>Comments</h4>
-            <p className="pattern-key"><code>{`{# comment #}`}</code></p>
-            <p>Hidden in output</p>
-            <code>{`{# TODO: refactor #}`}</code>
+            <p className="pattern-key"><code>{`{# ... #}`}</code></p>
+            <p>Hidden notes in code</p>
+            <code>{`{# TODO: optimize this #}`}</code>
           </div>
           <div className="pattern-box">
-            <h4>Filters</h4>
-            <p className="pattern-key"><code>{`{{ value | filter }}`}</code></p>
-            <p>Transform values</p>
-            <code>{`{{ name | upper }}`}</code>
+            <h4>Whitespace Control</h4>
+            <p className="pattern-key"><code>{`{%- ... -%}`}</code></p>
+            <p>Strip whitespace before/after</p>
+            <code>{`{%- if condition -%}`}</code>
           </div>
         </div>
       </section>
 
       <section className="sheet-section">
-        <h2>Common Patterns</h2>
-        <pre className="code-block"><code>{`-- Conditional logic
-{% if target.name == 'prod' %}
-  from prod.raw_data
-{% else %}
-  from dev.raw_data
-{% endif %}
+        <h2>Variable Assignment</h2>
+        <pre className="code-block"><code>{`-- String
+{% set my_string = "example" %}
 
--- Loops
-{% for col in ['id', 'name', 'email'] %}
-  {{ col }}{% if not loop.last %},{% endif %}
-{% endfor %}
+-- List
+{% set payment_methods = ['card', 'paypal', 'wire'] %}
 
--- Set variables
-{% set payment_methods = ['credit_card', 'paypal', 'wire'] %}
+-- Dictionary
+{% set config_map = {"dev": "dev_schema", "prod": "prod_schema"} %}
 
--- Dynamic column generation
-{% for method in payment_methods %}
-  sum(case when payment_method = '{{ method }}' then amount end) as {{ method }}_revenue
-  {% if not loop.last %},{% endif %}
-{% endfor %}`.trim()}</code></pre>
+-- From query result
+{% set query_result = run_query("select max(order_date) from orders") %}
+{% set max_date = query_result.columns[0].values()[0] %}`.trim()}</code></pre>
       </section>
 
       <section className="sheet-section">
-        <h2>dbt Functions</h2>
+        <h2>Conditional Logic</h2>
+        <pre className="code-block"><code>{`-- Basic if/else
+{% if target.name == 'prod' %}
+  from analytics_prod.orders
+{% elif target.name == 'dev' %}
+  from analytics_dev.orders
+{% else %}
+  from analytics_ci.orders
+{% endif %}
+
+-- Logical operators: and, or, not
+{% if is_incremental() and target.name == 'prod' %}
+  where updated_at > (select max(updated_at) from {{ this }})
+{% endif %}
+
+-- Comparison: ==, !=, >, <, >=, <=
+{% if var('start_date', none) is not none %}
+  where order_date >= '{{ var('start_date') }}'
+{% endif %}`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Loops</h2>
+        <pre className="code-block"><code>{`-- Loop over list
+{% set columns = ['id', 'name', 'email', 'created_at'] %}
+select
+  {% for col in columns %}
+    {{ col }}{% if not loop.last %},{% endif %}
+  {% endfor %}
+from customers
+
+-- Loop with index
+{% for method in ['card', 'paypal', 'wire'] %}
+  sum(case when payment_method = '{{ method }}'
+      then amount end) as {{ method }}_revenue
+  {% if not loop.last %},{% endif %}
+{% endfor %}
+
+-- Loop over dictionary
+{% set schemas = {"staging": "stg", "marts": "mrt"} %}
+{% for key, value in schemas.items() %}
+  {{ key }}: {{ value }}
+{% endfor %}
+
+-- Loop properties
+loop.first    -- Boolean: True on first iteration
+loop.last     -- Boolean: True on final iteration
+loop.index    -- Integer: 1-indexed iteration count
+loop.index0   -- Integer: 0-indexed iteration count`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Jinja Filters</h2>
+        <table className="decision-table">
+          <thead>
+            <tr>
+              <th>Filter</th>
+              <th>Example</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>lower</code></td>
+              <td><code>{`{{ "TEXT" | lower }}`}</code></td>
+              <td>"text"</td>
+            </tr>
+            <tr>
+              <td><code>upper</code></td>
+              <td><code>{`{{ "text" | upper }}`}</code></td>
+              <td>"TEXT"</td>
+            </tr>
+            <tr>
+              <td><code>capitalize</code></td>
+              <td><code>{`{{ "hello world" | capitalize }}`}</code></td>
+              <td>"Hello world"</td>
+            </tr>
+            <tr>
+              <td><code>trim</code></td>
+              <td><code>{`{{ "  text  " | trim }}`}</code></td>
+              <td>"text"</td>
+            </tr>
+            <tr>
+              <td><code>replace</code></td>
+              <td><code>{`{{ "hello" | replace("h", "j") }}`}</code></td>
+              <td>"jello"</td>
+            </tr>
+            <tr>
+              <td><code>length</code></td>
+              <td><code>{`{{ "hello" | length }}`}</code></td>
+              <td>5</td>
+            </tr>
+            <tr>
+              <td><code>default</code></td>
+              <td><code>{`{{ var('key', '') | default('fallback') }}`}</code></td>
+              <td>Returns default if undefined/empty</td>
+            </tr>
+            <tr>
+              <td><code>int</code></td>
+              <td><code>{`{{ "42" | int }}`}</code></td>
+              <td>42</td>
+            </tr>
+            <tr>
+              <td><code>float</code></td>
+              <td><code>{`{{ "3.14" | float }}`}</code></td>
+              <td>3.14</td>
+            </tr>
+            <tr>
+              <td><code>round</code></td>
+              <td><code>{`{{ 3.14159 | round(2) }}`}</code></td>
+              <td>3.14</td>
+            </tr>
+            <tr>
+              <td><code>round(method='floor')</code></td>
+              <td><code>{`{{ 3.9 | round(method='floor') }}`}</code></td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td><code>round(method='ceil')</code></td>
+              <td><code>{`{{ 3.1 | round(method='ceil') }}`}</code></td>
+              <td>4</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className="sheet-section">
+        <h2>String Operations</h2>
+        <pre className="code-block"><code>{`-- Slicing
+{{ "database"[0:4] }}  -- "data"
+
+-- Splitting
+{% set parts = "first,second,third".split(',') %}
+-- Results in: ['first', 'second', 'third']
+
+-- Concatenation
+{{ "Hello " ~ "World" }}  -- "Hello World"
+
+-- Repetition
+{{ "-" * 20 }}  -- "--------------------"
+
+-- Join list into string
+{% set columns = ['id', 'name', 'email'] %}
+{{ columns | join(', ') }}  -- "id, name, email"`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Variable Tests</h2>
+        <pre className="code-block"><code>{`-- Check if defined
+{% if my_var is defined %}
+  {{ my_var }}
+{% endif %}
+
+-- Check if none/null
+{% if my_var is none %}
+  -- Handle null case
+{% endif %}
+
+-- Type checks
+{% if my_var is string %}
+  '{{ my_var }}'
+{% elif my_var is number %}
+  {{ my_var }}
+{% endif %}
+
+-- Numeric tests
+{% if count is even %}
+  -- Even number
+{% elif count is odd %}
+  -- Odd number
+{% endif %}`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>dbt Built-in Functions</h2>
         <table className="decision-table">
           <thead>
             <tr>
@@ -677,56 +875,162 @@ function JinjaSheet() {
           <tbody>
             <tr>
               <td><code>ref()</code></td>
-              <td>Reference another model</td>
+              <td>Reference dbt model</td>
               <td><code>{`{{ ref('stg_customers') }}`}</code></td>
             </tr>
             <tr>
               <td><code>source()</code></td>
-              <td>Reference a raw table</td>
-              <td><code>{`{{ source('raw', 'orders') }}`}</code></td>
+              <td>Reference raw source table</td>
+              <td><code>{`{{ source('stripe', 'charges') }}`}</code></td>
             </tr>
             <tr>
               <td><code>config()</code></td>
-              <td>Set model config in SQL</td>
+              <td>Set model configuration</td>
               <td><code>{`{{ config(materialized='table') }}`}</code></td>
             </tr>
             <tr>
               <td><code>var()</code></td>
-              <td>Use project variables</td>
-              <td><code>{`{{ var('start_date') }}`}</code></td>
+              <td>Access project variables</td>
+              <td><code>{`{{ var('start_date', '2024-01-01') }}`}</code></td>
+            </tr>
+            <tr>
+              <td><code>env_var()</code></td>
+              <td>Access environment variables</td>
+              <td><code>{`{{ env_var('DBT_DATABASE') }}`}</code></td>
             </tr>
             <tr>
               <td><code>target</code></td>
-              <td>Access environment info</td>
+              <td>Current environment info</td>
               <td><code>{`{{ target.schema }}`}</code></td>
+            </tr>
+            <tr>
+              <td><code>this</code></td>
+              <td>Current model's relation</td>
+              <td><code>{`select max(date) from {{ this }}`}</code></td>
+            </tr>
+            <tr>
+              <td><code>is_incremental()</code></td>
+              <td>Check if running incrementally</td>
+              <td><code>{`{% if is_incremental() %}`}</code></td>
+            </tr>
+            <tr>
+              <td><code>run_query()</code></td>
+              <td>Execute query, return results</td>
+              <td><code>{`{% set result = run_query(sql) %}`}</code></td>
+            </tr>
+            <tr>
+              <td><code>execute</code></td>
+              <td>True during execution phase</td>
+              <td><code>{`{% if execute %}`}</code></td>
             </tr>
           </tbody>
         </table>
       </section>
 
       <section className="sheet-section">
-        <h2>When to Write a Macro</h2>
+        <h2>Target Context Variables</h2>
+        <pre className="code-block"><code>{`{{ target.name }}       -- Target name (dev, prod)
+{{ target.schema }}     -- Target schema
+{{ target.type }}       -- Warehouse type (snowflake, bigquery, etc)
+{{ target.database }}   -- Database name
+{{ target.threads }}    -- Number of threads
+{{ target.profile_name }}  -- Profile name from profiles.yml`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Writing Macros</h2>
+        <pre className="code-block"><code>{`-- macros/date_spine.sql
+{% macro date_spine(start_date, end_date) %}
+  with date_spine as (
+    {{ dbt_utils.date_spine(
+        datepart="day",
+        start_date="'" ~ start_date ~ "'",
+        end_date="'" ~ end_date ~ "'"
+    ) }}
+  )
+  select * from date_spine
+{% endmacro %}
+
+-- Using the macro
+{{ date_spine('2024-01-01', '2024-12-31') }}
+
+-- Macro with default arguments
+{% macro cents_to_dollars(column_name, precision=2) %}
+  round({{ column_name }} / 100.0, {{ precision }})
+{% endmacro %}
+
+-- Call with: {{ cents_to_dollars('amount_cents', 3) }}`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Generic Tests (Macros in tests/generic/)</h2>
+        <pre className="code-block"><code>{`-- tests/generic/test_column_value_greater_than.sql
+{% test column_value_greater_than(model, column_name, threshold) %}
+  select {{ column_name }}
+  from {{ model }}
+  where {{ column_name }} <= {{ threshold }}
+{% endtest %}
+
+-- Usage in schema.yml
+models:
+  - name: orders
+    columns:
+      - name: total_amount
+        tests:
+          - column_value_greater_than:
+              threshold: 0`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>When to Write Macros</h2>
         <ul className="checklist-list">
-          <li>☐ Same logic used in 3+ models</li>
+          <li>☐ Logic used in 3+ models (DRY principle)</li>
           <li>☐ Complex SQL that's hard to read inline</li>
-          <li>☐ Conditional logic based on warehouse type</li>
-          <li>☐ Dynamic column generation</li>
-          <li>☐ Custom tests or operations</li>
+          <li>☐ Warehouse-specific logic (use target.type)</li>
+          <li>☐ Dynamic column/table generation</li>
+          <li>☐ Custom generic tests</li>
+          <li>☐ Operations/maintenance scripts</li>
         </ul>
       </section>
 
       <section className="sheet-section">
-        <h2>Simple Macro Example</h2>
-        <pre className="code-block"><code>{`-- macros/cents_to_dollars.sql
-{% macro cents_to_dollars(column_name) %}
-  round({{ column_name }} / 100.0, 2)
-{% endmacro %}
-
--- models/mart_revenue.sql
+        <h2>Common Patterns</h2>
+        <pre className="code-block"><code>{`-- Dynamic pivoting
+{% set payment_methods = ['card', 'paypal', 'wire', 'ach'] %}
 select
-  order_id,
-  {{ cents_to_dollars('amount_cents') }} as amount_dollars
-from {{ ref('stg_orders') }}`.trim()}</code></pre>
+  customer_id,
+  {% for method in payment_methods %}
+    sum(case when payment_method = '{{ method }}'
+        then amount else 0 end) as {{ method }}_total
+    {%- if not loop.last %},{% endif %}
+  {% endfor %}
+from payments
+group by customer_id
+
+-- Environment-based logic
+{% if target.name == 'prod' %}
+  {% set schema_suffix = '' %}
+{% else %}
+  {% set schema_suffix = '_' ~ target.name %}
+{% endif %}
+
+-- Generate union of similar tables
+{% set tables = ['events_2023', 'events_2024', 'events_2025'] %}
+{% for table in tables %}
+  select *, '{{ table }}' as source_table
+  from {{ source('raw', table) }}
+  {% if not loop.last %} union all {% endif %}
+{% endfor %}`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Debugging Tips</h2>
+        <ul className="patterns-list">
+          <li><strong>View compiled SQL:</strong> <code>dbt compile -s model_name</code> then check target/compiled/</li>
+          <li><strong>Log values:</strong> <code>{`{{ log('Debug: ' ~ my_variable, info=true) }}`}</code></li>
+          <li><strong>Check variable type:</strong> <code>{`{{ my_var | string }}`}</code> to cast for inspection</li>
+          <li><strong>Use dbt compile:</strong> Generates SQL without execution for validation</li>
+        </ul>
       </section>
     </div>
   )
@@ -737,11 +1041,11 @@ function CommandsSheet() {
     <div className="sheet">
       <header className="sheet-header">
         <h1>dbt Commands Reference</h1>
-        <p className="sheet-tagline">CLI quick reference</p>
+        <p className="sheet-tagline">Comprehensive CLI guide</p>
       </header>
 
       <section className="sheet-section">
-        <h2>Essential Commands</h2>
+        <h2>Core Development Commands</h2>
         <table className="decision-table">
           <thead>
             <tr>
@@ -753,127 +1057,366 @@ function CommandsSheet() {
           <tbody>
             <tr>
               <td><code>dbt run</code></td>
-              <td>Build all models</td>
-              <td>Deploy to production, refresh all data</td>
+              <td>Execute models (creates tables/views)</td>
+              <td>Build data transformations</td>
             </tr>
             <tr>
               <td><code>dbt test</code></td>
-              <td>Run all tests</td>
-              <td>Validate data quality after runs</td>
+              <td>Execute data tests</td>
+              <td>Validate data quality</td>
             </tr>
             <tr>
               <td><code>dbt build</code></td>
-              <td>Run + test in dependency order</td>
-              <td>Best for CI/CD pipelines</td>
+              <td>Run + test in DAG order</td>
+              <td>Production deployments, CI/CD</td>
             </tr>
             <tr>
               <td><code>dbt compile</code></td>
-              <td>Generate SQL without running</td>
-              <td>Debug queries, see compiled SQL</td>
+              <td>Generate SQL without execution</td>
+              <td>Debug, review compiled queries</td>
             </tr>
             <tr>
-              <td><code>dbt docs generate</code></td>
-              <td>Build documentation site</td>
-              <td>Create searchable docs for team</td>
+              <td><code>dbt seed</code></td>
+              <td>Load CSV files into warehouse</td>
+              <td>Load reference data, mappings</td>
             </tr>
             <tr>
-              <td><code>dbt docs serve</code></td>
-              <td>Host docs locally</td>
-              <td>View lineage graph, explore models</td>
+              <td><code>dbt snapshot</code></td>
+              <td>Capture SCD Type 2 changes</td>
+              <td>Track historical dimension changes</td>
+            </tr>
+            <tr>
+              <td><code>dbt source freshness</code></td>
+              <td>Check if sources are up-to-date</td>
+              <td>Monitor data pipeline health</td>
+            </tr>
+            <tr>
+              <td><code>dbt retry</code></td>
+              <td>Re-run from point of failure</td>
+              <td>After fixing errors mid-run</td>
+            </tr>
+            <tr>
+              <td><code>dbt show</code></td>
+              <td>Preview query results in terminal</td>
+              <td>Quick data inspection</td>
+            </tr>
+            <tr>
+              <td><code>dbt run-operation</code></td>
+              <td>Execute macro from CLI</td>
+              <td>Run maintenance scripts, operations</td>
             </tr>
           </tbody>
         </table>
       </section>
 
       <section className="sheet-section">
-        <h2>Selection Syntax</h2>
-        <table className="decision-table">
-          <thead>
-            <tr>
-              <th>Flag</th>
-              <th>Example</th>
-              <th>Result</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><code>--select</code></td>
-              <td><code>dbt run --select customers</code></td>
-              <td>Run only the customers model</td>
-            </tr>
-            <tr>
-              <td><code>+</code></td>
-              <td><code>dbt run --select +customers</code></td>
-              <td>Run customers and all upstream</td>
-            </tr>
-            <tr>
-              <td><code>+</code></td>
-              <td><code>dbt run --select customers+</code></td>
-              <td>Run customers and all downstream</td>
-            </tr>
-            <tr>
-              <td><code>tag:</code></td>
-              <td><code>dbt run --select tag:nightly</code></td>
-              <td>Run all models tagged "nightly"</td>
-            </tr>
-            <tr>
-              <td><code>path:</code></td>
-              <td><code>dbt run --select path:marts/</code></td>
-              <td>Run all models in marts folder</td>
-            </tr>
-            <tr>
-              <td><code>state:</code></td>
-              <td><code>dbt run --select state:modified+</code></td>
-              <td>Run modified models + downstream (CI)</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section className="sheet-section">
-        <h2>Useful Flags</h2>
+        <h2>Documentation Commands</h2>
         <div className="patterns-grid">
           <div className="pattern-box">
-            <h4>--full-refresh</h4>
-            <p>Rebuild incremental models from scratch</p>
-            <code>dbt run --select my_incremental --full-refresh</code>
+            <h4>dbt docs generate</h4>
+            <p>Build documentation site with lineage graph</p>
+            <code>dbt docs generate</code>
           </div>
           <div className="pattern-box">
-            <h4>--exclude</h4>
-            <p>Skip specific models</p>
-            <code>dbt run --exclude tag:deprecated</code>
-          </div>
-          <div className="pattern-box">
-            <h4>--vars</h4>
-            <p>Pass runtime variables</p>
-            <code>{`dbt run --vars '{"start_date": "2024-01-01"}'`}</code>
-          </div>
-          <div className="pattern-box">
-            <h4>--target</h4>
-            <p>Use specific environment</p>
-            <code>dbt run --target prod</code>
+            <h4>dbt docs serve</h4>
+            <p>Host docs locally (default: localhost:8080)</p>
+            <code>dbt docs serve --port 8001</code>
           </div>
         </div>
       </section>
 
       <section className="sheet-section">
-        <h2>Daily Workflow</h2>
+        <h2>Project Management Commands</h2>
+        <table className="decision-table">
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>dbt init</code></td>
+              <td>Initialize new dbt project</td>
+            </tr>
+            <tr>
+              <td><code>dbt debug</code></td>
+              <td>Validate setup and database connection</td>
+            </tr>
+            <tr>
+              <td><code>dbt deps</code></td>
+              <td>Install packages from packages.yml</td>
+            </tr>
+            <tr>
+              <td><code>dbt clean</code></td>
+              <td>Delete target/ and dbt_packages/ folders</td>
+            </tr>
+            <tr>
+              <td><code>dbt parse</code></td>
+              <td>Parse project and output timing info</td>
+            </tr>
+            <tr>
+              <td><code>dbt ls / list</code></td>
+              <td>List resources in project (models, tests, sources)</td>
+            </tr>
+            <tr>
+              <td><code>dbt clone</code></td>
+              <td>Clone nodes to target database</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Node Selection Methods</h2>
+        <table className="decision-table">
+          <thead>
+            <tr>
+              <th>Selector</th>
+              <th>Syntax</th>
+              <th>Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>By name</td>
+              <td><code>model_name</code></td>
+              <td><code>dbt run -s customers</code></td>
+            </tr>
+            <tr>
+              <td>By tag</td>
+              <td><code>tag:tag_name</code></td>
+              <td><code>dbt run -s tag:nightly</code></td>
+            </tr>
+            <tr>
+              <td>By path</td>
+              <td><code>path:folder/</code></td>
+              <td><code>dbt run -s path:marts/finance/</code></td>
+            </tr>
+            <tr>
+              <td>By source</td>
+              <td><code>source:source_name</code></td>
+              <td><code>dbt run -s source:salesforce+</code></td>
+            </tr>
+            <tr>
+              <td>By config</td>
+              <td><code>config.key:value</code></td>
+              <td><code>dbt run -s config.materialized:table</code></td>
+            </tr>
+            <tr>
+              <td>By test type</td>
+              <td><code>test_type:generic</code></td>
+              <td><code>dbt test -s test_type:singular</code></td>
+            </tr>
+            <tr>
+              <td>By state</td>
+              <td><code>state:modified</code></td>
+              <td><code>dbt build -s state:modified+</code></td>
+            </tr>
+            <tr>
+              <td>By package</td>
+              <td><code>package:pkg_name</code></td>
+              <td><code>dbt run -s package:dbt_utils</code></td>
+            </tr>
+            <tr>
+              <td>By result</td>
+              <td><code>result:error</code></td>
+              <td><code>dbt retry -s result:error</code></td>
+            </tr>
+            <tr>
+              <td>By exposure</td>
+              <td><code>exposure:exp_name</code></td>
+              <td><code>dbt run -s +exposure:weekly_dashboard</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Graph Operators</h2>
+        <table className="decision-table">
+          <thead>
+            <tr>
+              <th>Operator</th>
+              <th>Syntax</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Upstream</td>
+              <td><code>+model</code></td>
+              <td>Select model + all parents</td>
+            </tr>
+            <tr>
+              <td>Downstream</td>
+              <td><code>model+</code></td>
+              <td>Select model + all children</td>
+            </tr>
+            <tr>
+              <td>Both</td>
+              <td><code>+model+</code></td>
+              <td>Select model + parents + children</td>
+            </tr>
+            <tr>
+              <td>N-degree</td>
+              <td><code>2+model</code></td>
+              <td>Select model + 2 levels of parents</td>
+            </tr>
+            <tr>
+              <td>N-degree down</td>
+              <td><code>model+3</code></td>
+              <td>Select model + 3 levels of children</td>
+            </tr>
+            <tr>
+              <td>Intersection</td>
+              <td><code>@model</code></td>
+              <td>Select model + parents of children</td>
+            </tr>
+            <tr>
+              <td>Wildcard</td>
+              <td><code>marts.*</code></td>
+              <td>All models in marts folder</td>
+            </tr>
+            <tr>
+              <td>Union (space)</td>
+              <td><code>model1 model2</code></td>
+              <td>Select both models</td>
+            </tr>
+            <tr>
+              <td>Union (comma)</td>
+              <td><code>tag:daily,tag:nightly</code></td>
+              <td>Models with either tag</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Essential Flags</h2>
+        <div className="patterns-grid">
+          <div className="pattern-box">
+            <h4>--select / -s</h4>
+            <p>Specify which nodes to run</p>
+            <code>dbt run -s +customers</code>
+          </div>
+          <div className="pattern-box">
+            <h4>--exclude</h4>
+            <p>Exclude specific nodes</p>
+            <code>dbt run --exclude tag:deprecated</code>
+          </div>
+          <div className="pattern-box">
+            <h4>--full-refresh</h4>
+            <p>Rebuild incremental models completely</p>
+            <code>dbt run --full-refresh</code>
+          </div>
+          <div className="pattern-box">
+            <h4>--vars</h4>
+            <p>Pass variables at runtime</p>
+            <code>{`dbt run --vars '{"key": "value"}'`}</code>
+          </div>
+          <div className="pattern-box">
+            <h4>--target / -t</h4>
+            <p>Specify target environment</p>
+            <code>dbt run --target prod</code>
+          </div>
+          <div className="pattern-box">
+            <h4>--fail-fast / -x</h4>
+            <p>Stop on first error</p>
+            <code>dbt test -x</code>
+          </div>
+          <div className="pattern-box">
+            <h4>--defer</h4>
+            <p>Use prod artifacts for unbuilt refs</p>
+            <code>dbt run -s state:modified+ --defer</code>
+          </div>
+          <div className="pattern-box">
+            <h4>--state</h4>
+            <p>Path to prior manifest.json</p>
+            <code>dbt run -s state:modified --state ./prod</code>
+          </div>
+          <div className="pattern-box">
+            <h4>--debug</h4>
+            <p>Show detailed debug logging</p>
+            <code>dbt run --debug</code>
+          </div>
+          <div className="pattern-box">
+            <h4>--warn-error</h4>
+            <p>Treat warnings as errors</p>
+            <code>dbt build --warn-error</code>
+          </div>
+          <div className="pattern-box">
+            <h4>--no-version-check</h4>
+            <p>Skip dbt version check</p>
+            <code>dbt run --no-version-check</code>
+          </div>
+          <div className="pattern-box">
+            <h4>--threads</h4>
+            <p>Number of concurrent threads</p>
+            <code>dbt run --threads 8</code>
+          </div>
+        </div>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Logging Flags</h2>
+        <ul className="patterns-list">
+          <li><code>--log-format</code>: text | json | debug | default</li>
+          <li><code>--log-level</code>: debug | info | warn | error | none</li>
+          <li><code>--quiet / -q</code>: Suppress non-error output</li>
+          <li><code>--no-use-colors</code>: Disable colored output</li>
+          <li><code>--record-timing-info</code>: Save performance profile</li>
+        </ul>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Daily Development Workflow</h2>
+        <pre className="code-block"><code>{`# 1. Work on a single model
+dbt run -s my_model
+
+# 2. Test your model
+dbt test -s my_model
+
+# 3. Check downstream impact
+dbt build -s my_model+
+
+# 4. Before committing (CI flow)
+dbt build -s state:modified+ --defer --state ./prod-artifacts
+
+# 5. Full refresh a specific incremental
+dbt run -s my_incremental_model --full-refresh
+
+# 6. Run all models in a folder
+dbt run -s path:marts/finance/
+
+# 7. Run models with specific tag
+dbt run -s tag:daily
+
+# 8. Preview query results
+dbt show -s my_model --limit 10
+
+# 9. Check source freshness
+dbt source freshness`}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Production Deployment Pattern</h2>
         <div className="flowchart">
           <div className="flowchart-step">
-            <p><strong>1. Start working on a model</strong></p>
-            <p><code>dbt run --select my_model</code> — Build just this model</p>
+            <p><strong>1. Install dependencies</strong></p>
+            <p><code>dbt deps</code></p>
           </div>
           <div className="flowchart-step">
-            <p><strong>2. Check downstream impact</strong></p>
-            <p><code>dbt run --select my_model+</code> — Build this + downstream</p>
+            <p><strong>2. Check source freshness</strong></p>
+            <p><code>dbt source freshness</code></p>
           </div>
           <div className="flowchart-step">
-            <p><strong>3. Validate quality</strong></p>
-            <p><code>dbt test --select my_model+</code> — Test this + downstream</p>
+            <p><strong>3. Build everything</strong></p>
+            <p><code>dbt build --target prod</code></p>
           </div>
           <div className="flowchart-step">
-            <p><strong>4. Before committing</strong></p>
-            <p><code>dbt build --select state:modified+</code> — Build + test changed models</p>
+            <p><strong>4. Generate docs</strong></p>
+            <p><code>dbt docs generate --target prod</code></p>
           </div>
         </div>
       </section>
@@ -1366,6 +1909,1047 @@ group by order_date`.trim()}</code></pre>
             <p>Update source records and verify they propagate correctly</p>
           </div>
         </div>
+      </section>
+    </div>
+  )
+}
+
+function SourcesSeedsSheet() {
+  return (
+    <div className="sheet">
+      <header className="sheet-header">
+        <h1>Sources & Seeds</h1>
+        <p className="sheet-tagline">Connect to raw data</p>
+      </header>
+
+      <section className="sheet-section">
+        <h2>What Are Sources?</h2>
+        <p className="definition">
+          <strong>Sources</strong> define raw tables in your data warehouse that dbt should know about.
+          They enable testing, documentation, and freshness checks on upstream data.
+        </p>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Defining Sources</h2>
+        <pre className="code-block"><code>{`-- models/staging/_sources.yml
+version: 2
+
+sources:
+  - name: stripe
+    database: raw
+    schema: stripe_data
+    tables:
+      - name: customers
+        description: Raw customer data from Stripe
+        columns:
+          - name: id
+            description: Unique customer identifier
+            tests:
+              - unique
+              - not_null
+          - name: email
+            tests:
+              - not_null
+
+      - name: charges
+        description: Payment charges from Stripe
+        freshness:
+          warn_after: {count: 12, period: hour}
+          error_after: {count: 24, period: hour}
+        loaded_at_field: created_at`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Using Sources in Models</h2>
+        <pre className="code-block"><code>{`-- models/staging/stg_customers.sql
+select
+  id as customer_id,
+  email,
+  created_at
+from {{ source('stripe', 'customers') }}
+
+-- Benefits:
+-- ✓ dbt knows dependencies
+-- ✓ Shows in lineage graph
+-- ✓ Can test source data
+-- ✓ Can check freshness`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Source Freshness Checks</h2>
+        <pre className="code-block"><code>{`# Check all sources
+dbt source freshness
+
+# Check specific source
+dbt source freshness --select source:stripe
+
+# Output shows:
+# PASS: loaded within warn threshold
+# WARN: older than warn_after
+# ERROR: older than error_after`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Source Properties</h2>
+        <table className="decision-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Purpose</th>
+              <th>Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>database</code></td>
+              <td>Database name (if different from target)</td>
+              <td><code>raw_data</code></td>
+            </tr>
+            <tr>
+              <td><code>schema</code></td>
+              <td>Schema containing tables</td>
+              <td><code>stripe_production</code></td>
+            </tr>
+            <tr>
+              <td><code>loaded_at_field</code></td>
+              <td>Timestamp column for freshness</td>
+              <td><code>updated_at</code></td>
+            </tr>
+            <tr>
+              <td><code>freshness</code></td>
+              <td>Define warn/error thresholds</td>
+              <td><code>warn_after: 12 hours</code></td>
+            </tr>
+            <tr>
+              <td><code>quoting</code></td>
+              <td>Control identifier quoting</td>
+              <td><code>database: true</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className="sheet-section">
+        <h2>What Are Seeds?</h2>
+        <p className="definition">
+          <strong>Seeds</strong> are CSV files in your repository that dbt loads into your warehouse as tables.
+          Use for small reference/mapping data, not large datasets.
+        </p>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Creating Seeds</h2>
+        <pre className="code-block"><code>{`# File: seeds/country_codes.csv
+country_code,country_name,region
+US,United States,North America
+GB,United Kingdom,Europe
+JP,Japan,Asia
+
+# File: seeds/payment_method_mapping.csv
+raw_method,standardized_method
+cc,credit_card
+card,credit_card
+paypal,paypal
+pp,paypal`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Loading Seeds</h2>
+        <pre className="code-block"><code>{`# Load all seeds
+dbt seed
+
+# Load specific seed
+dbt seed --select country_codes
+
+# Full refresh (rebuild)
+dbt seed --full-refresh
+
+# Seeds are loaded into: <target_schema>.<seed_name>`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Using Seeds in Models</h2>
+        <pre className="code-block"><code>{`-- Reference with ref(), just like models
+select
+  o.order_id,
+  o.country_code,
+  c.country_name,
+  c.region
+from {{ ref('orders') }} as o
+left join {{ ref('country_codes') }} as c
+  on o.country_code = c.country_code`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Configuring Seeds</h2>
+        <pre className="code-block"><code>{`-- dbt_project.yml
+seeds:
+  my_project:
+    # Apply to all seeds
+    +schema: seed_data
+
+    # Specific seed configs
+    country_codes:
+      +column_types:
+        country_code: varchar(2)
+        country_name: varchar(100)
+
+-- Or in seeds/properties.yml
+version: 2
+
+seeds:
+  - name: country_codes
+    description: ISO country codes and names
+    config:
+      column_types:
+        country_code: varchar(2)
+    columns:
+      - name: country_code
+        tests:
+          - unique
+          - not_null`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Seeds vs Sources: When to Use</h2>
+        <table className="decision-table">
+          <thead>
+            <tr>
+              <th>Use Seeds For</th>
+              <th>Use Sources For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Small reference data (&lt; 1MB)</td>
+              <td>Large production tables</td>
+            </tr>
+            <tr>
+              <td>Mapping tables (state codes, categories)</td>
+              <td>Transactional data</td>
+            </tr>
+            <tr>
+              <td>Data managed in version control</td>
+              <td>Data loaded by external systems</td>
+            </tr>
+            <tr>
+              <td>Test fixtures for development</td>
+              <td>Production data pipelines</td>
+            </tr>
+            <tr>
+              <td>Rarely changing data</td>
+              <td>Frequently updated data</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Best Practices</h2>
+        <ul className="patterns-list">
+          <li><strong>Sources:</strong> Always define sources for raw data you reference</li>
+          <li><strong>Freshness:</strong> Set thresholds based on SLAs, not just guesses</li>
+          <li><strong>Seeds:</strong> Keep CSVs small (&lt; 1MB), use sources for larger data</li>
+          <li><strong>Testing:</strong> Add unique/not_null tests to source primary keys</li>
+          <li><strong>Documentation:</strong> Document both sources and seeds with descriptions</li>
+          <li><strong>Organization:</strong> Group sources by system (stripe, salesforce, etc.)</li>
+        </ul>
+      </section>
+    </div>
+  )
+}
+
+function PackagesSheet() {
+  return (
+    <div className="sheet">
+      <header className="sheet-header">
+        <h1>dbt Packages</h1>
+        <p className="sheet-tagline">Essential packages & how to use them</p>
+      </header>
+
+      <section className="sheet-section">
+        <h2>What Are Packages?</h2>
+        <p className="definition">
+          <strong>Packages</strong> are reusable dbt code libraries that provide macros, models, and tests
+          you can use across projects. They're like npm packages but for dbt.
+        </p>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Installing Packages</h2>
+        <pre className="code-block"><code>{`# 1. Create packages.yml in project root
+packages:
+  - package: dbt-labs/dbt_utils
+    version: 1.1.1
+
+  - package: calogica/dbt_expectations
+    version: 0.10.3
+
+  - package: dbt-labs/codegen
+    version: 0.12.1
+
+# 2. Install packages
+dbt deps
+
+# Packages are installed to: dbt_packages/`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Essential Packages</h2>
+        <div className="patterns-grid">
+          <div className="pattern-box">
+            <h4>dbt_utils</h4>
+            <p>Most popular package with 100+ utility macros</p>
+            <code>dbt-labs/dbt_utils</code>
+            <p className="pattern-key">Macros for dates, SQL generation, testing</p>
+          </div>
+          <div className="pattern-box">
+            <h4>dbt_expectations</h4>
+            <p>Great Expectations-inspired tests</p>
+            <code>calogica/dbt_expectations</code>
+            <p className="pattern-key">Advanced data quality tests</p>
+          </div>
+          <div className="pattern-box">
+            <h4>codegen</h4>
+            <p>Generate dbt YAML and SQL boilerplate</p>
+            <code>dbt-labs/codegen</code>
+            <p className="pattern-key">Automate documentation scaffolding</p>
+          </div>
+          <div className="pattern-box">
+            <h4>dbt_date</h4>
+            <p>Date dimension and calendar utilities</p>
+            <code>calogica/dbt_date</code>
+            <p className="pattern-key">Fiscal calendars, date spines</p>
+          </div>
+          <div className="pattern-box">
+            <h4>audit_helper</h4>
+            <p>Compare datasets during refactoring</p>
+            <code>dbt-labs/audit_helper</code>
+            <p className="pattern-key">Validate migration accuracy</p>
+          </div>
+          <div className="pattern-box">
+            <h4>dbt_artifacts</h4>
+            <p>Save run artifacts to warehouse</p>
+            <code>brooklyn-data/dbt_artifacts</code>
+            <p className="pattern-key">Track model run history</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="sheet-section">
+        <h2>dbt_utils: Common Macros</h2>
+        <table className="decision-table">
+          <thead>
+            <tr>
+              <th>Macro</th>
+              <th>Purpose</th>
+              <th>Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>surrogate_key()</code></td>
+              <td>Generate hash key from columns</td>
+              <td><code>{`{{ dbt_utils.surrogate_key(['col1', 'col2']) }}`}</code></td>
+            </tr>
+            <tr>
+              <td><code>date_spine()</code></td>
+              <td>Generate date series</td>
+              <td><code>{`{{ dbt_utils.date_spine(...) }}`}</code></td>
+            </tr>
+            <tr>
+              <td><code>union_relations()</code></td>
+              <td>Union multiple tables</td>
+              <td><code>{`{{ dbt_utils.union_relations(relations=[ref('a'), ref('b')]) }}`}</code></td>
+            </tr>
+            <tr>
+              <td><code>get_column_values()</code></td>
+              <td>Get distinct values from column</td>
+              <td><code>{`{{ dbt_utils.get_column_values(ref('orders'), 'status') }}`}</code></td>
+            </tr>
+            <tr>
+              <td><code>star()</code></td>
+              <td>Select all columns except specified</td>
+              <td><code>{`{{ dbt_utils.star(from=ref('stg_orders'), except=['_loaded_at']) }}`}</code></td>
+            </tr>
+            <tr>
+              <td><code>pivot()</code></td>
+              <td>Pivot values into columns</td>
+              <td><code>{`{{ dbt_utils.pivot('status', dbt_utils.get_column_values(...)) }}`}</code></td>
+            </tr>
+            <tr>
+              <td><code>group_by()</code></td>
+              <td>Group by column numbers</td>
+              <td><code>{`{{ dbt_utils.group_by(n=3) }}`}</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className="sheet-section">
+        <h2>dbt_utils: Test Macros</h2>
+        <pre className="code-block"><code>{`# schema.yml
+models:
+  - name: orders
+    columns:
+      - name: order_id
+        tests:
+          # Relationship where condition
+          - dbt_utils.relationships_where:
+              to: ref('customers')
+              field: customer_id
+              from_condition: "status != 'cancelled'"
+
+          # Values must be in list
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1000000
+
+      - name: order_date
+        tests:
+          # Date is not in future
+          - dbt_utils.expression_is_true:
+              expression: "<= current_date"
+
+      - name: email
+        tests:
+          # Regex pattern match
+          - dbt_utils.not_null_proportion:
+              at_least: 0.95`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>dbt_expectations: Example Tests</h2>
+        <pre className="code-block"><code>{`models:
+  - name: orders
+    tests:
+      # Row count in range
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1000
+          max_value: 1000000
+
+    columns:
+      - name: order_total
+        tests:
+          # Values in range
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000
+
+          # No null values
+          - dbt_expectations.expect_column_values_to_not_be_null
+
+      - name: email
+        tests:
+          # Email format validation
+          - dbt_expectations.expect_column_values_to_match_regex:
+              regex: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>codegen: Generate Boilerplate</h2>
+        <pre className="code-block"><code>{`# Generate base model SQL for source
+dbt run-operation generate_base_model --args '{"source_name": "stripe", "table_name": "customers"}'
+
+# Generate schema YAML for models
+dbt run-operation generate_model_yaml --args '{"model_names": ["stg_customers", "stg_orders"]}'
+
+# Generate source YAML
+dbt run-operation generate_source --args '{"schema_name": "raw_stripe", "database_name": "analytics"}'
+
+# Output can be copied and pasted into your project`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Using Package Macros</h2>
+        <pre className="code-block"><code>{`-- Always prefix with package name
+select
+  {{ dbt_utils.surrogate_key(['customer_id', 'order_id']) }} as order_line_key,
+  customer_id,
+  order_id,
+  product_id
+from {{ ref('stg_order_lines') }}
+
+-- Generate date spine
+{{ dbt_utils.date_spine(
+    datepart="day",
+    start_date="cast('2020-01-01' as date)",
+    end_date="cast('2025-12-31' as date)"
+) }}`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Package Best Practices</h2>
+        <ul className="patterns-list">
+          <li><strong>Version pinning:</strong> Always specify exact versions in packages.yml</li>
+          <li><strong>Review changelog:</strong> Check breaking changes before upgrading</li>
+          <li><strong>Test after upgrade:</strong> Run <code>dbt build</code> after <code>dbt deps</code></li>
+          <li><strong>Namespace awareness:</strong> Always use package prefix: <code>dbt_utils.macro_name</code></li>
+          <li><strong>Documentation:</strong> Check package docs on hub.getdbt.com</li>
+          <li><strong>Minimal packages:</strong> Only install what you need to reduce dependencies</li>
+        </ul>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Finding Packages</h2>
+        <div className="flowchart">
+          <div className="flowchart-step">
+            <p><strong>1. Browse dbt Package Hub</strong></p>
+            <p>Visit hub.getdbt.com for official registry</p>
+          </div>
+          <div className="flowchart-step">
+            <p><strong>2. Check GitHub</strong></p>
+            <p>Search for "dbt-package" or "dbt-[warehouse]" on GitHub</p>
+          </div>
+          <div className="flowchart-step">
+            <p><strong>3. Read Documentation</strong></p>
+            <p>Review README and available macros</p>
+          </div>
+          <div className="flowchart-step">
+            <p><strong>4. Add to packages.yml</strong></p>
+            <p>Install with dbt deps</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function HooksSheet() {
+  return (
+    <div className="sheet">
+      <header className="sheet-header">
+        <h1>Hooks & Operations</h1>
+        <p className="sheet-tagline">Run SQL before, after, or around dbt runs</p>
+      </header>
+
+      <section className="sheet-section">
+        <h2>What Are Hooks?</h2>
+        <p className="definition">
+          <strong>Hooks</strong> are snippets of SQL that run at specific points in the dbt execution lifecycle.
+          Use them for grants, logging, cleanup, or warehouse optimization.
+        </p>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Hook Types</h2>
+        <table className="decision-table">
+          <thead>
+            <tr>
+              <th>Hook</th>
+              <th>When It Runs</th>
+              <th>Use For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>on-run-start</code></td>
+              <td>Beginning of dbt run/test/build</td>
+              <td>Create schemas, set session variables</td>
+            </tr>
+            <tr>
+              <td><code>on-run-end</code></td>
+              <td>End of dbt run/test/build</td>
+              <td>Log results, send notifications, cleanup</td>
+            </tr>
+            <tr>
+              <td><code>pre-hook</code></td>
+              <td>Before building each model</td>
+              <td>Truncate staging tables, disable constraints</td>
+            </tr>
+            <tr>
+              <td><code>post-hook</code></td>
+              <td>After building each model</td>
+              <td>Grant permissions, create indexes, optimize</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className="sheet-section">
+        <h2>on-run-start & on-run-end</h2>
+        <pre className="code-block"><code>{`-- dbt_project.yml
+on-run-start:
+  - "create schema if not exists {{ target.schema }}_snapshot"
+  - "{{ log_run_start() }}"  # Call custom macro
+
+on-run-end:
+  - "{{ log_run_results() }}"  # Custom logging macro
+  - "{{ dbt_artifacts.upload_results(results) }}"  # Package macro
+  - "grant usage on schema {{ target.schema }} to role analyst"
+
+# Multiple hooks run in order
+# Access results with: {{ results }} variable`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>pre-hook & post-hook (Model Level)</h2>
+        <pre className="code-block"><code>{`-- In model SQL file
+{{
+  config(
+    pre_hook="delete from {{ this }} where is_deleted = true",
+    post_hook=[
+      "grant select on {{ this }} to role analyst",
+      "create index if not exists idx_customer_id on {{ this }} (customer_id)"
+    ]
+  )
+}}
+
+select * from {{ ref('stg_orders') }}
+
+-- Or in dbt_project.yml
+models:
+  my_project:
+    marts:
+      +post-hook:
+        - "grant select on {{ this }} to role reporting_user"`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Common post-hook: Grant Permissions</h2>
+        <pre className="code-block"><code>{`-- dbt_project.yml
+models:
+  my_project:
+    marts:
+      +post-hook:
+        - "grant select on {{ this }} to role analyst"
+        - "grant select on {{ this }} to role bi_tool"
+
+# Or create a macro for reusability
+-- macros/grant_select.sql
+{% macro grant_select(role) %}
+  grant select on {{ this }} to role {{ role }}
+{% endmacro %}
+
+# Then use in config
+{{
+  config(
+    post_hook="{{ grant_select('analyst') }}"
+  )
+}}`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Accessing Context in Hooks</h2>
+        <pre className="code-block"><code>{`# Available variables in hooks:
+
+{{ this }}           # Current model's relation
+{{ target }}         # Target configuration (name, schema, etc)
+{{ var('...') }}     # Project variables
+{{ ref('...') }}     # Reference other models
+{{ source('...') }}  # Reference sources
+
+# on-run-end only:
+{{ results }}        # List of result objects from run
+
+# Example: Log failures
+{% if results %}
+  {% for result in results %}
+    {% if result.status == 'error' %}
+      insert into {{ target.schema }}.dbt_run_errors
+      values ('{{ result.node.name }}', '{{ result.message }}', current_timestamp)
+    {% endif %}
+  {% endfor %}
+{% endif %}`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Operations (run-operation)</h2>
+        <p className="definition">
+          Operations are macros that you run standalone via CLI, not tied to models.
+          Use for maintenance, migrations, or administrative tasks.
+        </p>
+        <pre className="code-block"><code>{`-- macros/grant_all_schemas.sql
+{% macro grant_all_schemas(role) %}
+  {% set schemas = ['analytics', 'staging', 'marts'] %}
+  {% for schema in schemas %}
+    grant usage on schema {{ schema }} to role {{ role }};
+    grant select on all tables in schema {{ schema }} to role {{ role }};
+  {% endfor %}
+{% endmacro %}
+
+# Run from command line
+dbt run-operation grant_all_schemas --args '{"role": "analyst"}'
+
+-- macros/drop_old_models.sql
+{% macro drop_old_models(schema_name, days_old=30) %}
+  {% set query %}
+    select table_name
+    from {{ schema_name }}.information_schema.tables
+    where table_schema = '{{ schema_name }}'
+      and table_type = 'VIEW'
+      and created < current_date - interval '{{ days_old }} days'
+  {% endset %}
+
+  {% set results = run_query(query) %}
+  {% for row in results %}
+    drop view if exists {{ schema_name }}.{{ row[0] }};
+  {% endfor %}
+{% endmacro %}
+
+# Run it
+dbt run-operation drop_old_models --args '{"schema_name": "dev_staging", "days_old": 7}'`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Hook Execution Order</h2>
+        <div className="flowchart">
+          <div className="flowchart-step">
+            <p><strong>1. on-run-start hooks</strong></p>
+            <p>Run once at beginning</p>
+          </div>
+          <div className="flowchart-step">
+            <p><strong>2. For each model:</strong></p>
+            <p>→ pre-hook (if defined)</p>
+            <p>→ Build model</p>
+            <p>→ post-hook (if defined)</p>
+          </div>
+          <div className="flowchart-step">
+            <p><strong>3. on-run-end hooks</strong></p>
+            <p>Run once at end (even if errors)</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Real-World Hook Examples</h2>
+        <pre className="code-block"><code>{`# 1. Warehouse optimization (Snowflake)
+post-hook: "alter table {{ this }} cluster by (order_date)"
+
+# 2. Data retention policy
+pre-hook: "delete from {{ this }} where created_at < current_date - 365"
+
+# 3. Audit logging
+on-run-end:
+  - "{{ log_dbt_results(results) }}"
+
+# 4. Grant to multiple roles
+post-hook:
+  - "grant select on {{ this }} to role analyst"
+  - "grant select on {{ this }} to role data_scientist"
+  - "grant select on {{ this }} to role bi_tool"
+
+# 5. Create indexes for performance
+post-hook:
+  - "create index if not exists idx_customer on {{ this }} (customer_id)"
+  - "create index if not exists idx_date on {{ this }} (order_date)"
+
+# 6. Materialized view refresh (BigQuery)
+post-hook: "call \`{{ target.project }}\`.{{ target.dataset }}.refresh_materialized_view('{{ this }}')"`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Best Practices</h2>
+        <ul className="patterns-list">
+          <li><strong>Idempotent:</strong> Hooks should be safe to run multiple times</li>
+          <li><strong>Fast:</strong> Avoid slow hooks that block model execution</li>
+          <li><strong>Error handling:</strong> Use <code>if</code> statements to handle edge cases</li>
+          <li><strong>Conditional execution:</strong> Use <code>{`{% if target.name == 'prod' %}`}</code> for environment-specific hooks</li>
+          <li><strong>Logging:</strong> Use <code>{`{{ log('message', info=true) }}`}</code> for visibility</li>
+          <li><strong>Testing:</strong> Test hooks in dev before deploying to prod</li>
+        </ul>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Debugging Hooks</h2>
+        <ul className="patterns-list">
+          <li><strong>Check compiled SQL:</strong> Look in target/run/ for hook SQL</li>
+          <li><strong>Use --debug flag:</strong> <code>dbt run --debug</code> shows hook execution</li>
+          <li><strong>Test in isolation:</strong> Create temporary models to test hooks</li>
+          <li><strong>Check logs:</strong> Hooks appear in logs/dbt.log with timestamps</li>
+        </ul>
+      </section>
+    </div>
+  )
+}
+
+function SnapshotsSheet() {
+  return (
+    <div className="sheet">
+      <header className="sheet-header">
+        <h1>Snapshots (SCD Type 2)</h1>
+        <p className="sheet-tagline">Track historical changes over time</p>
+      </header>
+
+      <section className="sheet-section">
+        <h2>What Are Snapshots?</h2>
+        <p className="definition">
+          <strong>Snapshots</strong> implement Slowly Changing Dimension (SCD) Type 2 logic, capturing
+          how records change over time. Each snapshot adds validity timestamps to track when records were active.
+        </p>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Why Use Snapshots?</h2>
+        <ul className="checklist-list">
+          <li>✓ Track customer status changes (active → churned → reactivated)</li>
+          <li>✓ Monitor product price history</li>
+          <li>✓ Audit record modifications for compliance</li>
+          <li>✓ Analyze historical dimensions (how many customers were active on 2024-01-01?)</li>
+          <li>✓ Point-in-time reporting (what was the customer's address last year?)</li>
+        </ul>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Two Snapshot Strategies</h2>
+        <table className="decision-table">
+          <thead>
+            <tr>
+              <th>Strategy</th>
+              <th>How It Works</th>
+              <th>Best For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>timestamp</strong></td>
+              <td>Track changes using updated_at column</td>
+              <td>Tables with reliable update timestamps</td>
+            </tr>
+            <tr>
+              <td><strong>check</strong></td>
+              <td>Compare all columns to detect changes</td>
+              <td>Tables without timestamps, need full change detection</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Timestamp Strategy</h2>
+        <pre className="code-block"><code>{`-- snapshots/snap_customers.sql
+{% snapshot snap_customers %}
+
+{{
+  config(
+    target_schema='snapshots',
+    unique_key='customer_id',
+    strategy='timestamp',
+    updated_at='updated_at',
+    invalidate_hard_deletes=True
+  )
+}}
+
+select * from {{ source('stripe', 'customers') }}
+
+{% endsnapshot %}
+
+-- Result adds these columns:
+-- dbt_valid_from: when this version became active
+-- dbt_valid_to: when this version became inactive (null = current)
+-- dbt_scd_id: unique hash for each version
+-- dbt_updated_at: snapshot of the updated_at field`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Check Strategy</h2>
+        <pre className="code-block"><code>{`-- snapshots/snap_products.sql
+{% snapshot snap_products %}
+
+{{
+  config(
+    target_schema='snapshots',
+    unique_key='product_id',
+    strategy='check',
+    check_cols=['price', 'status', 'category'],
+    invalidate_hard_deletes=True
+  )
+}}
+
+select
+  product_id,
+  product_name,
+  price,
+  status,
+  category
+from {{ source('ecommerce', 'products') }}
+
+{% endsnapshot %}
+
+-- Triggers new snapshot version when price, status, or category changes
+-- Use check_cols='all' to check every column`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Running Snapshots</h2>
+        <pre className="code-block"><code>{`# Run all snapshots
+dbt snapshot
+
+# Run specific snapshot
+dbt snapshot --select snap_customers
+
+# Check snapshots in DAG
+dbt ls --resource-type snapshot
+
+# Snapshots should run frequently (hourly/daily) to capture changes`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Snapshot Configuration Options</h2>
+        <table className="decision-table">
+          <thead>
+            <tr>
+              <th>Config</th>
+              <th>Purpose</th>
+              <th>Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>target_schema</code></td>
+              <td>Where to store snapshot table</td>
+              <td><code>snapshots</code></td>
+            </tr>
+            <tr>
+              <td><code>unique_key</code></td>
+              <td>Column(s) that identify unique records</td>
+              <td><code>customer_id</code></td>
+            </tr>
+            <tr>
+              <td><code>strategy</code></td>
+              <td>Detection method (timestamp or check)</td>
+              <td><code>timestamp</code></td>
+            </tr>
+            <tr>
+              <td><code>updated_at</code></td>
+              <td>Timestamp column (timestamp strategy only)</td>
+              <td><code>updated_at</code></td>
+            </tr>
+            <tr>
+              <td><code>check_cols</code></td>
+              <td>Columns to monitor (check strategy only)</td>
+              <td><code>['status', 'email']</code> or <code>'all'</code></td>
+            </tr>
+            <tr>
+              <td><code>invalidate_hard_deletes</code></td>
+              <td>Close out deleted records</td>
+              <td><code>True</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Using Snapshots in Models</h2>
+        <pre className="code-block"><code>{`-- Get current (active) records only
+select *
+from {{ ref('snap_customers') }}
+where dbt_valid_to is null
+
+-- Get historical records at specific date
+select *
+from {{ ref('snap_customers') }}
+where '2024-01-01' between dbt_valid_from and coalesce(dbt_valid_to, '9999-12-31')
+
+-- Track changes over time
+select
+  customer_id,
+  status,
+  dbt_valid_from,
+  dbt_valid_to,
+  datediff('day', dbt_valid_from, coalesce(dbt_valid_to, current_date)) as days_in_status
+from {{ ref('snap_customers') }}
+order by customer_id, dbt_valid_from`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Snapshot Lifecycle Example</h2>
+        <pre className="code-block"><code>{`-- Initial snapshot on 2024-01-01
+customer_id | status   | dbt_valid_from | dbt_valid_to
+-----------+----------+----------------+-------------
+1          | active   | 2024-01-01     | null
+
+-- Customer status changes on 2024-02-15
+-- After running dbt snapshot:
+customer_id | status   | dbt_valid_from | dbt_valid_to
+-----------+----------+----------------+-------------
+1          | active   | 2024-01-01     | 2024-02-15
+1          | churned  | 2024-02-15     | null
+
+-- Customer reactivates on 2024-03-20
+customer_id | status      | dbt_valid_from | dbt_valid_to
+-----------+-------------+----------------+-------------
+1          | active      | 2024-01-01     | 2024-02-15
+1          | churned     | 2024-02-15     | 2024-03-20
+1          | reactivated | 2024-03-20     | null`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Hard Deletes</h2>
+        <pre className="code-block"><code>{`# When invalidate_hard_deletes=True:
+# If a record disappears from source, dbt sets dbt_valid_to to current timestamp
+
+-- Before deletion
+customer_id | status | dbt_valid_from | dbt_valid_to
+-----------+--------+----------------+-------------
+999        | active | 2024-01-01     | null
+
+-- After source record deleted and snapshot runs
+customer_id | status | dbt_valid_from | dbt_valid_to
+-----------+--------+----------------+----------------
+999        | active | 2024-01-01     | 2024-05-15
+
+# Preserves historical record but marks it as no longer active`.trim()}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Best Practices</h2>
+        <ul className="patterns-list">
+          <li><strong>Schedule regularly:</strong> Run snapshots hourly or daily for accuracy</li>
+          <li><strong>Unique keys:</strong> Ensure unique_key truly identifies records uniquely</li>
+          <li><strong>Use timestamp when possible:</strong> More efficient than check strategy</li>
+          <li><strong>Limit check_cols:</strong> Checking all columns can be slow; specify key columns</li>
+          <li><strong>Monitor growth:</strong> Snapshot tables grow over time; monitor size</li>
+          <li><strong>Test validity:</strong> Query for overlapping periods (shouldn't exist)</li>
+          <li><strong>Document strategy:</strong> Explain why timestamp vs check was chosen</li>
+        </ul>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Common Pitfalls</h2>
+        <ul className="mistakes-list">
+          <li>❌ Non-unique unique_key causes duplicates</li>
+          <li>❌ Unreliable updated_at timestamps miss changes</li>
+          <li>❌ Running snapshots infrequently loses granularity</li>
+          <li>❌ Not handling timezones consistently</li>
+          <li>❌ Forgetting to filter dbt_valid_to is null for current records</li>
+          <li>❌ Snapshotting large tables without incremental source strategy</li>
+        </ul>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Advanced: Snapshot + Incremental</h2>
+        <pre className="code-block"><code>{`-- For very large tables, snapshot from an incremental staging model
+-- models/staging/stg_large_table.sql
+{{
+  config(
+    materialized='incremental',
+    unique_key='record_id'
+  )
+}}
+
+select * from {{ source('raw', 'large_table') }}
+{% if is_incremental() %}
+  where updated_at > (select max(updated_at) from {{ this }})
+{% endif %}
+
+-- snapshots/snap_large_table.sql
+{% snapshot snap_large_table %}
+{{
+  config(
+    target_schema='snapshots',
+    unique_key='record_id',
+    strategy='timestamp',
+    updated_at='updated_at'
+  )
+}}
+
+select * from {{ ref('stg_large_table') }}
+
+{% endsnapshot %}
+
+-- Reduces snapshot processing time significantly`.trim()}</code></pre>
       </section>
     </div>
   )
