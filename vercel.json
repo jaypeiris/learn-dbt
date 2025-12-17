@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/learn_dbt",
+      "destination": "/learn_dbt/index.html"
+    },
+    {
+      "source": "/learn_dbt/:path*",
+      "destination": "/learn_dbt/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
