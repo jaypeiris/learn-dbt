@@ -3,13 +3,26 @@
   --brand-navy-900: #0b1b2e;
   --brand-navy-800: #10263f;
   --brand-navy-700: #163a5f;
+  --brand-navy-600: #193f65;
+  --brand-navy-500: #1f4f7f;
+  --brand-navy-300: #c7d5eb;
+  --brand-navy-100: #e9eff7;
+  --brand-navy-50: #f5f7fb;
+
+  --brand-gold-700: #9c7631;
+  --brand-gold-600: #c69a45;
   --brand-gold-500: #d6b26e;
+  --brand-gold-400: #e2c48a;
+  --brand-gold-100: #fdeac4;
+  --brand-gold-50: #fff8eb;
 
   /* Learning surface */
   --neutral-0: #ffffff;
   --neutral-50: #fafafa;
   --neutral-100: #f4f6f8;
   --neutral-200: #e5e9ef;
+  --neutral-300: #d0d7e0;
+  --neutral-400: #bcc6d2;
 
   --text-primary: #1f2937;
   --text-secondary: #4b5563;

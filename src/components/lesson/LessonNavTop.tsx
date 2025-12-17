@@ -20,9 +20,7 @@ export default function LessonNavTop({ lessons, currentLessonId, completedLesson
   const [openModules, setOpenModules] = useState<Set<string>>(new Set())
 
   // Find which module contains the current lesson
-  const currentModuleId = useMemo(() => {
-    return findModuleId(modules, currentLessonId)
-  }, [modules, currentLessonId])
+  const currentModuleId = useMemo(() => findModuleId(modules, currentLessonId), [modules, currentLessonId])
 
   // Auto-open the current module and keep it open
   useEffect(() => {
@@ -63,9 +61,10 @@ export default function LessonNavTop({ lessons, currentLessonId, completedLesson
                 className="lesson-nav-sidebar__module-header"
                 onClick={() => toggleModule(module.id)}
                 aria-expanded={isOpen}
+                aria-controls={`${module.id}-lessons`}
               >
                 <div className="lesson-nav-sidebar__module-info">
-                  <span className="lesson-nav-sidebar__module-icon">{isOpen ? '▼' : '▶'}</span>
+                  <ChevronIcon open={isOpen} />
                   <span className="lesson-nav-sidebar__module-title">{module.title}</span>
                 </div>
                 <div className="lesson-nav-sidebar__module-meta">
@@ -75,15 +74,12 @@ export default function LessonNavTop({ lessons, currentLessonId, completedLesson
                 </div>
               </button>
               {totalLessons > 0 && (
-                <div className="lesson-nav-sidebar__progress-bar">
-                  <div
-                    className="lesson-nav-sidebar__progress-fill"
-                    style={{ width: `${progressPercent}%` }}
-                  />
+                <div className="lesson-nav-sidebar__progress-bar" aria-hidden="true">
+                  <div className="lesson-nav-sidebar__progress-fill" style={{ width: `${progressPercent}%` }} />
                 </div>
               )}
               {isOpen && (
-                <ul className="lesson-nav-sidebar__lesson-list">
+                <ul className="lesson-nav-sidebar__lesson-list" id={`${module.id}-lessons`}>
                   {module.lessons.map((lesson, index) => {
                     const isCompleted = completedLessons.has(lesson.id)
                     const isActive = lesson.id === currentLessonId
@@ -91,7 +87,9 @@ export default function LessonNavTop({ lessons, currentLessonId, completedLesson
                       <li key={lesson.id} className="lesson-nav-sidebar__lesson-item">
                         <button
                           type="button"
-                          className={`lesson-nav-sidebar__lesson-link${isActive ? ' active' : ''}${isCompleted ? ' completed' : ''}`}
+                          className={`lesson-nav-sidebar__lesson-link${isActive ? ' active' : ''}${
+                            isCompleted ? ' completed' : ''
+                          }`}
                           onClick={() => onSelect(lesson.id)}
                         >
                           <span className="lesson-nav-sidebar__lesson-number">{index + 1}</span>
@@ -101,11 +99,7 @@ export default function LessonNavTop({ lessons, currentLessonId, completedLesson
                               <span className="lesson-nav-sidebar__lesson-summary">{lesson.summary}</span>
                             )}
                           </span>
-                          {isCompleted && (
-                            <span className="lesson-nav-sidebar__lesson-check" aria-label="Completed">
-                              ✓
-                            </span>
-                          )}
+                          {isCompleted && <CheckIcon />}
                         </button>
                       </li>
                     )
@@ -152,7 +146,7 @@ function formatModuleTitle(moduleId: string, _lessonTitle: string): string {
     3: 'Materializations',
     4: 'Tests & docs',
     5: 'Snapshots',
-    6: 'Manifest'
+    6: 'Manifest',
   }
 
   const moduleName = moduleNames[number as number]
@@ -166,4 +160,42 @@ function findModuleId(modules: LessonModule[], lessonId: string): string | null 
     }
   }
   return null
+}
+
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      className="lesson-nav-sidebar__chevron"
+      viewBox="0 0 16 16"
+      role="presentation"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d={open ? 'M4 6.5 8 10.5 12 6.5' : 'M6.5 4 10.5 8 6.5 12'}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <span className="lesson-nav-sidebar__lesson-check" aria-label="Completed" role="img">
+      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <path
+          d="M4 8.5 7 11.5 12.5 5.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  )
 }

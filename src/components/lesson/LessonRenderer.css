@@ -6,9 +6,11 @@
 }
 
 .lesson-renderer > header {
-  padding-bottom: 2rem;
-  border-bottom: 1px solid var(--neutral-200);
-  margin-bottom: 0.5rem;
+  padding: 1.5rem 1.75rem;
+  border: 1px solid var(--neutral-200);
+  border-radius: 12px;
+  background: linear-gradient(120deg, var(--brand-navy-50), var(--neutral-0));
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
 }
 
 .lesson-meta-row {

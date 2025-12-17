@@ -22,6 +22,7 @@
   border-radius: 1rem;
   padding: 1.75rem 1.5rem;
   margin-left: 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
 }
 
 .lesson-primary {
@@ -59,10 +60,8 @@
   padding: 1.25rem;
   border: 1px solid var(--neutral-200);
   align-self: flex-start;
-  position: sticky;
-  top: 100px;
-  max-height: calc(100vh - 120px);
-  overflow-y: auto;
+  position: relative;
+  top: auto;
 }
 
 .secondary-block {
@@ -103,6 +102,107 @@
   font-size: 0.95rem;
 }
 
+.lesson-progress-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 14px;
+  border: 1px solid var(--brand-navy-600);
+  background: linear-gradient(100deg, var(--brand-navy-900), var(--brand-navy-700));
+  color: #f6f8fb;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  margin-bottom: 1.25rem;
+  grid-column: 1 / -1;
+}
+
+.lesson-progress-banner__meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.lesson-progress-banner__headline {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.lesson-progress-banner__headline strong {
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.lesson-progress-banner__headline span {
+  color: rgba(246, 248, 251, 0.8);
+  font-size: 0.95rem;
+}
+
+.lesson-progress-banner__bar {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(246, 248, 251, 0.18);
+  overflow: hidden;
+}
+
+.lesson-progress-banner__bar span {
+  display: block;
+  height: 100%;
+  background: var(--brand-gold-400);
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.06);
+  transition: width 0.3s ease;
+}
+
+.lesson-progress-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.primary-button {
+  border: none;
+  background: var(--brand-gold-500);
+  color: var(--brand-navy-900);
+  padding: 0.75rem 1.1rem;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.primary-button:hover {
+  background: var(--brand-gold-600);
+}
+
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  box-shadow: none;
+}
+
+.ghost-button {
+  border: 1px solid rgba(246, 248, 251, 0.25);
+  background: transparent;
+  color: #f6f8fb;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ghost-button:hover {
+  border-color: rgba(246, 248, 251, 0.4);
+  background: rgba(246, 248, 251, 0.08);
+}
+
 @media (max-width: 1100px) {
   .learn-layout {
     flex-direction: column;
@@ -119,6 +219,7 @@
     border-radius: 0;
     border-left: none;
     border-right: none;
+    box-shadow: none;
   }
 
   .lesson-secondary {
@@ -132,5 +233,10 @@
   .secondary-block {
     flex: 1 1 260px;
     border-bottom: none;
+  }
+
+  .lesson-progress-banner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

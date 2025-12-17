@@ -7,7 +7,7 @@ import ManifestExplorer from '../components/manifest/ManifestExplorer'
 import { parseSqlModel } from '../lib/sqlParser'
 import { buildLineageGraph } from '../lib/lineageBuilder'
 import { getDefaultLessonId, getLessonById, getLessonIndex } from '../lib/lessonEngine'
-import { getCurrentLesson, getSqlEdit, saveCurrentLesson, saveSqlEdit, getCompletedLessons } from '../lib/progressStore'
+import { getCurrentLesson, getSqlEdit, saveCurrentLesson, saveSqlEdit, getCompletedLessons, markLessonComplete } from '../lib/progressStore'
 import type { LessonDefinition } from '../../types/lesson'
 import './LearnPage.css'
 
@@ -32,6 +32,14 @@ export default function LearnPage() {
   const [selectedLessonId, setSelectedLessonId] = useState(savedLessonId || getDefaultLessonId())
   const [lesson, setLesson] = useState<LessonDefinition | undefined>(() => getLessonById(selectedLessonId))
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(getCompletedLessons())
+
+  const totalLessons = lessonIndex.length
+  const currentLessonIndex = lessonIndex.findIndex((entry) => entry.id === selectedLessonId)
+  const currentLessonNumber = currentLessonIndex >= 0 ? currentLessonIndex + 1 : 1
+  const nextLessonId =
+    currentLessonIndex >= 0 && currentLessonIndex < lessonIndex.length - 1 ? lessonIndex[currentLessonIndex + 1].id : null
+  const progressPercent = totalLessons > 0 ? Math.round((completedLessons.size / totalLessons) * 100) : 0
+  const isCurrentLessonComplete = completedLessons.has(selectedLessonId)
 
   const initialModel = selectActiveModel(lesson)
   // Try to load saved SQL edit, fallback to default
@@ -76,6 +84,22 @@ export default function LearnPage() {
     setCompletedLessons(getCompletedLessons())
   }
 
+  const handleMarkComplete = () => {
+    if (!isCurrentLessonComplete) {
+      markLessonComplete(selectedLessonId)
+      setCompletedLessons(getCompletedLessons())
+    }
+  }
+
+  const handleNextLesson = () => {
+    if (!isCurrentLessonComplete) {
+      handleMarkComplete()
+    }
+    if (nextLessonId) {
+      setSelectedLessonId(nextLessonId)
+    }
+  }
+
   const parsed = useMemo(() => parseSqlModel(sql), [sql])
   const graph = useMemo(
     () =>
@@ -105,6 +129,36 @@ export default function LearnPage() {
         />
       </aside>
       <section className="learn-main">
+        <div className="lesson-progress-banner">
+          <div className="lesson-progress-banner__meta">
+            <p className="section-label">Progress</p>
+            <div className="lesson-progress-banner__headline">
+              <strong>
+                {completedLessons.size} of {totalLessons} lessons
+              </strong>
+              <span>Currently on lesson {currentLessonNumber} of {totalLessons}</span>
+            </div>
+            <div
+              className="lesson-progress-banner__bar"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={progressPercent}
+            >
+              <span style={{ width: `${progressPercent}%` }} />
+            </div>
+          </div>
+          <div className="lesson-progress-banner__actions">
+            {!isCurrentLessonComplete && (
+              <button type="button" className="ghost-button" onClick={handleMarkComplete}>
+                Mark complete
+              </button>
+            )}
+            <button type="button" className="primary-button" onClick={handleNextLesson} disabled={!nextLessonId}>
+              {nextLessonId ? 'Next lesson' : 'All lessons done'}
+            </button>
+          </div>
+        </div>
         <div className="lesson-primary">
           <LessonRenderer
             lesson={lesson}
