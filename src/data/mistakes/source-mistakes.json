@@ -1,0 +1,45 @@
+{
+  "id": "source-mistakes",
+  "title": "Source & Raw Data Mistakes",
+  "description": "Incorrectly referencing raw data breaks lineage and freshness checks",
+  "mistakes": [
+    {
+      "id": "querying-raw-tables-directly",
+      "title": "Querying raw tables without source()",
+      "category": "sources",
+      "severity": "major",
+      "description": "Referencing raw tables directly instead of using source() hides them from DAG",
+      "symptoms": [
+        "Source tables missing from dbt docs lineage graph",
+        "Can't run dbt source freshness on these tables",
+        "DAG shows models with no upstream dependencies",
+        "Hard to track which raw tables are actually used"
+      ],
+      "brokenCode": "-- models/staging/stg_customers.sql\n-- MISTAKE: Direct table reference\n\nselect\n  customer_id,\n  email,\n  created_at\nfrom raw.stripe_customers  -- BAD: hardcoded raw table\n\n-- models/staging/stg_orders.sql\nselect\n  order_id,\n  customer_id,\n  order_total\nfrom raw_db.production.orders  -- BAD: also hardcoded",
+      "whyBad": "dbt doesn't know you're using these raw tables. They won't appear in lineage graphs. You can't check their freshness. Environment-specific schema names (raw vs raw_dev) break across environments. dbt source snapshot won't work. You lose all source management features.",
+      "fixedCode": "-- First: Define sources in schema.yml\n-- models/staging/_sources.yml\nversion: 2\n\nsources:\n  - name: stripe\n    schema: raw\n    tables:\n      - name: stripe_customers\n        freshness:\n          warn_after: {count: 24, period: hour}\n        loaded_at_field: _synced_at\n\n  - name: production\n    database: raw_db\n    schema: production\n    tables:\n      - name: orders\n\n-- Then: Use source() in models\n-- models/staging/stg_customers.sql\nselect\n  customer_id,\n  email,\n  created_at\nfrom {{ source('stripe', 'stripe_customers') }}\n\n-- models/staging/stg_orders.sql\nselect\n  order_id,\n  customer_id,\n  order_total\nfrom {{ source('production', 'orders') }}",
+      "explanation": "Using source() tells dbt about raw dependencies. Now sources appear in docs, freshness checks work, and environment-specific schemas are handled automatically. The DAG is complete and accurate.",
+      "prevention": "Never type schema.table directly. Always define sources in YAML and use source() function. If you see 'from raw.' or 'from prod.' in a model, it's wrong.",
+      "tags": ["sources", "lineage", "freshness", "dependencies"]
+    },
+    {
+      "id": "no-freshness-checks",
+      "title": "No freshness checks on critical sources",
+      "category": "sources",
+      "severity": "major",
+      "description": "Pipeline depends on timely data but never checks if sources are stale",
+      "symptoms": [
+        "Dashboards show yesterday's data all day",
+        "Users ask why numbers haven't updated",
+        "Data pipeline runs but uses stale inputs",
+        "No alerts when upstream data loading fails"
+      ],
+      "brokenCode": "-- models/staging/_sources.yml\n-- MISTAKE: No freshness monitoring\n\nversion: 2\n\nsources:\n  - name: fivetran\n    schema: raw_fivetran\n    tables:\n      - name: orders\n        # Missing: freshness checks!\n        # This table should update every hour\n      - name: customers\n        # Also missing freshness checks",
+      "whyBad": "Your pipeline happily runs on stale data. Orders from 8 hours ago keep getting processed. Revenue dashboards freeze. No one knows until users complain. You have no early warning system for upstream data issues.",
+      "fixedCode": "-- models/staging/_sources.yml\n-- FIXED: Freshness checks with SLA-based thresholds\n\nversion: 2\n\nsources:\n  - name: fivetran\n    schema: raw_fivetran\n    tables:\n      - name: orders\n        description: Orders from Shopify, synced hourly\n        freshness:\n          warn_after: {count: 3, period: hour}\n          error_after: {count: 6, period: hour}\n        loaded_at_field: _fivetran_synced\n        \n      - name: customers\n        description: Customer data, synced daily\n        freshness:\n          warn_after: {count: 26, period: hour}\n          error_after: {count: 48, period: hour}\n        loaded_at_field: _fivetran_synced\n\n# Run: dbt source freshness\n# Output: WARN/ERROR if data is stale",
+      "explanation": "Freshness checks monitor when data was last updated. If orders table hasn't updated in 6 hours, dbt source freshness returns ERROR. Set warn_after and error_after based on your actual SLAs. Now you know about upstream issues before users do.",
+      "prevention": "Every critical source should have freshness checks. Set thresholds based on actual sync schedules (not guesses). Run dbt source freshness in CI or on a schedule to get alerts.",
+      "tags": ["sources", "freshness", "monitoring", "SLA"]
+    }
+  ]
+}

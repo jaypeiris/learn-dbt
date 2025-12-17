@@ -1,0 +1,45 @@
+{
+  "id": "performance-mistakes",
+  "title": "Performance Mistakes",
+  "description": "Wrong materialization or architecture choices that destroy performance",
+  "mistakes": [
+    {
+      "id": "view-for-large-mart",
+      "title": "View materialization for large marts",
+      "category": "performance",
+      "severity": "critical",
+      "description": "Using view for a large, complex, frequently-queried mart makes every query slow",
+      "symptoms": [
+        "Dashboards take 5+ minutes to load",
+        "Every BI query re-computes the entire mart",
+        "Warehouse costs spike during business hours",
+        "Users complain about slow reports"
+      ],
+      "brokenCode": "-- models/marts/mart_customer_360.sql\n-- MISTAKE: View for a 500M row mart\n\n{{\n  config(\n    materialized='view'  -- BAD for large marts\n  )\n}}\n\n-- Complex query with 8 joins and aggregations\nwith customer_orders as (\n  select\n    customer_id,\n    count(*) as order_count,\n    sum(order_total) as lifetime_revenue\n  from {{ ref('fct_orders') }}  -- 500M rows\n  group by 1\n),\n\ncustomer_engagement as (\n  select\n    customer_id,\n    count(*) as email_opens,\n    max(opened_at) as last_engagement\n  from {{ ref('fct_email_events') }}  -- 2B rows\n  group by 1\n)\n-- ... 6 more CTEs ...\n\nselect * from final\n\n-- Every BI query re-runs this entire 8-CTE monster",
+      "whyBad": "Views don't store results—they re-compute on every query. Your 500M row mart with 8 joins runs fresh every single time someone opens a dashboard. What should take 2 seconds takes 5 minutes. Users suffer. Warehouse costs explode.",
+      "fixedCode": "-- models/marts/mart_customer_360.sql\n-- FIXED: Table materialization for large marts\n\n{{\n  config(\n    materialized='table'  -- Pre-compute and store\n  )\n}}\n\n-- Same complex query\nwith customer_orders as (\n  select\n    customer_id,\n    count(*) as order_count,\n    sum(order_total) as lifetime_revenue\n  from {{ ref('fct_orders') }}\n  group by 1\n),\n-- ... rest of logic ...\n\nselect * from final\n\n-- Now:\n-- - dbt run computes this once (5 min build)\n-- - BI queries read pre-computed table (2 sec)\n-- - Users happy, costs down",
+      "explanation": "Table materialization pre-computes and stores results. The expensive computation happens once during dbt run. All subsequent queries just read the table—fast and cheap. For large marts (>10M rows) or complex logic, always use table.",
+      "prevention": "Default: views for staging, tables for marts. If a mart has >10M rows OR complex joins/aggregations OR is queried frequently, use materialized='table'. For very large marts (>100M rows), consider incremental.",
+      "tags": ["materialization", "performance", "views", "tables"]
+    },
+    {
+      "id": "no-intermediate-layer",
+      "title": "Skipping intermediate layer",
+      "category": "performance",
+      "severity": "major",
+      "description": "Jumping from staging to marts duplicates logic and creates performance issues",
+      "symptoms": [
+        "Same aggregation logic appears in 5 different marts",
+        "Marts take forever to build",
+        "Can't reuse logic across models",
+        "Changes require updating multiple models"
+      ],
+      "brokenCode": "-- MISTAKE: Every mart re-aggregates from scratch\n\n-- models/marts/mart_sales_dashboard.sql\nselect\n  customer_id,\n  sum(order_total) as lifetime_revenue,  -- Aggregating orders\n  count(*) as order_count\nfrom {{ ref('stg_orders') }}  -- 500M rows\ngroup by 1\n\n-- models/marts/mart_customer_segments.sql\nselect\n  customer_id,\n  sum(order_total) as lifetime_revenue,  -- Same aggregation!\n  count(*) as order_count,\n  case\n    when sum(order_total) > 1000 then 'vip'\n    else 'regular'\n  end as segment\nfrom {{ ref('stg_orders') }}  -- Re-aggregating 500M rows\ngroup by 1\n\n-- models/marts/mart_customer_retention.sql\nselect\n  customer_id,\n  sum(order_total) as lifetime_revenue,  -- Third time!\n  count(*) as order_count\nfrom {{ ref('stg_orders') }}  -- Another 500M row scan\ngroup by 1",
+      "whyBad": "Three models all aggregate stg_orders the same way. That's three separate scans of 500M rows. If the aggregation logic needs to change, you update it in three places (and probably miss one). Slow, expensive, unmaintainable.",
+      "fixedCode": "-- FIXED: Create intermediate model for shared logic\n\n-- models/intermediate/int_customer_order_summary.sql\n-- Aggregate ONCE, reuse everywhere\nselect\n  customer_id,\n  sum(order_total) as lifetime_revenue,\n  count(*) as order_count,\n  min(order_date) as first_order_date,\n  max(order_date) as most_recent_order_date\nfrom {{ ref('stg_orders') }}\ngroup by 1\n\n-- models/marts/mart_sales_dashboard.sql\nselect\n  customer_id,\n  lifetime_revenue,\n  order_count\nfrom {{ ref('int_customer_order_summary') }}  -- Fast!\n\n-- models/marts/mart_customer_segments.sql\nselect\n  customer_id,\n  lifetime_revenue,\n  order_count,\n  case\n    when lifetime_revenue > 1000 then 'vip'\n    else 'regular'\n  end as segment\nfrom {{ ref('int_customer_order_summary') }}  -- Reused!\n\n-- models/marts/mart_customer_retention.sql\nselect\n  customer_id,\n  lifetime_revenue,\n  order_count,\n  first_order_date,\n  most_recent_order_date\nfrom {{ ref('int_customer_order_summary') }}  -- Fast again!",
+      "explanation": "Intermediate models extract shared logic. Aggregate 500M rows once in int_customer_order_summary. All three marts now read a small aggregated table instead of scanning raw data. Faster builds, one source of truth, easy maintenance.",
+      "prevention": "If you copy-paste aggregation logic between models, you need an intermediate model. Don't repeat expensive operations. Extract to intermediate, reuse downstream.",
+      "tags": ["performance", "intermediate", "DRY", "architecture"]
+    }
+  ]
+}

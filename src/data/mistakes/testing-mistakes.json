@@ -1,0 +1,45 @@
+{
+  "id": "testing-mistakes",
+  "title": "Testing Mistakes",
+  "description": "Missing or incorrect tests that let bad data into production",
+  "mistakes": [
+    {
+      "id": "no-primary-key-tests",
+      "title": "No tests on primary keys",
+      "category": "testing",
+      "severity": "critical",
+      "description": "Models without unique + not_null tests on primary keys allow silent duplicates",
+      "symptoms": [
+        "Duplicate records in production",
+        "Join fanouts that shouldn't happen",
+        "Metrics that don't add up",
+        "No one discovers duplicates until dashboards are wrong"
+      ],
+      "brokenCode": "-- models/marts/fct_orders.sql\n-- Grain: one row per order\n-- Primary key: order_id\n\nselect\n  order_id,\n  customer_id,\n  order_total,\n  order_date\nfrom {{ ref('int_orders') }}\n\n-- models/marts/schema.yml\nversion: 2\n\nmodels:\n  - name: fct_orders\n    description: Order facts\n    columns:\n      - name: order_id\n        description: Unique order identifier\n        # MISSING: tests!\n      - name: customer_id\n      - name: order_total",
+      "whyBad": "Without unique + not_null tests, there's no guarantee your primary key is actually unique or non-null. Duplicates can creep in from upstream bugs, bad joins, or logic errors. You won't know until revenue is double-counted in production dashboards.",
+      "fixedCode": "-- models/marts/schema.yml\nversion: 2\n\nmodels:\n  - name: fct_orders\n    description: Order facts\n    columns:\n      - name: order_id\n        description: Unique order identifier\n        tests:\n          - unique\n          - not_null\n      - name: customer_id\n        tests:\n          - not_null\n          - relationships:\n              to: ref('dim_customers')\n              field: customer_id\n      - name: order_total\n        tests:\n          - not_null",
+      "explanation": "Adding unique + not_null tests on the primary key ensures data quality at build time. If duplicates or nulls appear, dbt test fails immediately—before bad data reaches dashboards. Relationships test ensures referential integrity.",
+      "prevention": "Every model should declare its grain in a comment AND test the primary key with unique + not_null. No exceptions. This is the minimum viable test suite.",
+      "tags": ["testing", "primary-key", "unique", "data-quality"]
+    },
+    {
+      "id": "testing-downstream-only",
+      "title": "Testing only marts, ignoring staging",
+      "category": "testing",
+      "severity": "major",
+      "description": "All tests on final marts, none on staging or intermediate layers",
+      "symptoms": [
+        "Test failures are hard to debug",
+        "Don't know which upstream model is broken",
+        "Fixing one test breaks three others",
+        "Trust issues with staging data"
+      ],
+      "brokenCode": "-- Good tests on marts\n-- models/marts/schema.yml\nmodels:\n  - name: mart_customer_summary\n    columns:\n      - name: customer_id\n        tests: [unique, not_null]\n      - name: lifetime_revenue\n        tests: [not_null]\n\n-- But staging has ZERO tests\n-- models/staging/schema.yml\nmodels:\n  - name: stg_customers\n    columns:\n      - name: customer_id\n        # No tests - hoping raw data is clean!\n  - name: stg_orders\n    columns:\n      - name: order_id\n        # No tests here either",
+      "whyBad": "When a mart test fails, you don't know which of 5 upstream models caused it. Testing only downstream is like only checking if the cake tastes good—without verifying the eggs weren't rotten. Bad data from staging propagates through 3 layers before you catch it.",
+      "fixedCode": "-- Test at EVERY layer, starting with staging\n\n-- models/staging/schema.yml\nmodels:\n  - name: stg_customers\n    columns:\n      - name: customer_id\n        tests: [unique, not_null]  # Test the foundation\n      - name: email\n        tests: [not_null]\n\n  - name: stg_orders\n    columns:\n      - name: order_id\n        tests: [unique, not_null]\n      - name: customer_id\n        tests:\n          - not_null\n          - relationships:\n              to: ref('stg_customers')\n              field: customer_id\n\n-- models/marts/schema.yml\nmodels:\n  - name: mart_customer_summary\n    columns:\n      - name: customer_id\n        tests: [unique, not_null]",
+      "explanation": "Testing at every layer (staging → intermediate → marts) catches problems early. When stg_customers fails its unique test, you know the issue is in raw data—not buried in complex mart logic. Debugging is 10x faster.",
+      "prevention": "Test staging first and most thoroughly. These are your data contracts. If staging passes tests, downstream issues are logic bugs (easier to fix) not data quality problems (harder to trace).",
+      "tags": ["testing", "layers", "staging", "debugging"]
+    }
+  ]
+}

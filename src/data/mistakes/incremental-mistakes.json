@@ -1,0 +1,64 @@
+{
+  "id": "incremental-mistakes",
+  "title": "Incremental Model Mistakes",
+  "description": "Common errors that break incremental models or make them ineffective",
+  "mistakes": [
+    {
+      "id": "missing-is-incremental-check",
+      "title": "Missing is_incremental() check",
+      "category": "incremental",
+      "severity": "critical",
+      "description": "Incremental model without the {% if is_incremental() %} filter processes all data every run",
+      "symptoms": [
+        "Incremental runs take same time as --full-refresh",
+        "Performance doesn't improve with incremental strategy",
+        "Row count keeps growing without bound",
+        "Warehouse costs are unexpectedly high"
+      ],
+      "brokenCode": "-- models/fct_events.sql\n-- MISTAKE: No incremental filter\n\n{{\n  config(\n    materialized='incremental',\n    unique_key='event_id'\n  )\n}}\n\nselect\n  event_id,\n  user_id,\n  event_type,\n  occurred_at\nfrom {{ source('analytics', 'events') }}\n-- Missing: WHERE filter for incremental runs\n-- This processes ALL events every single run!",
+      "whyBad": "Without the is_incremental() check, dbt processes the entire source table on every run—completely defeating the purpose of incremental models. You get all the complexity of incremental logic with none of the performance benefits. Your 'incremental' model is actually a slow, complicated full refresh.",
+      "fixedCode": "-- models/fct_events.sql\n-- FIXED: Filter for new/updated rows on incremental runs\n\n{{\n  config(\n    materialized='incremental',\n    unique_key='event_id'\n  )\n}}\n\nselect\n  event_id,\n  user_id,\n  event_type,\n  occurred_at\nfrom {{ source('analytics', 'events') }}\n\n{% if is_incremental() %}\n  -- Only process new events since last run\n  where occurred_at > (select max(occurred_at) from {{ this }})\n{% endif %}",
+      "explanation": "The is_incremental() check makes the model actually incremental. On first run (or with --full-refresh), it loads everything. On subsequent runs, it only processes new rows since the last run. This is the entire point of incremental models.",
+      "prevention": "Every incremental model MUST have {% if is_incremental() %} with a WHERE clause. No exceptions. Test with dbt run (incremental) vs dbt run --full-refresh to verify behavior differs.",
+      "tags": ["incremental", "is_incremental", "performance"]
+    },
+    {
+      "id": "created-at-instead-of-updated-at",
+      "title": "Using created_at instead of updated_at",
+      "category": "incremental",
+      "severity": "critical",
+      "description": "Incremental filter uses created_at, so updated records never get refreshed",
+      "symptoms": [
+        "Record updates don't appear in the model",
+        "Data is stale even after source updates",
+        "Status changes are missing",
+        "Only new records show up, never updates"
+      ],
+      "brokenCode": "-- MISTAKE: Filtering on created_at misses updates\n\n{{\n  config(\n    materialized='incremental',\n    unique_key='order_id'\n  )\n}}\n\nselect\n  order_id,\n  customer_id,\n  status,  -- This can change from 'pending' to 'shipped'\n  total_amount,\n  created_at,\n  updated_at\nfrom {{ source('ecommerce', 'orders') }}\n\n{% if is_incremental() %}\n  -- BAD: created_at never changes after initial insert\n  where created_at > (select max(created_at) from {{ this }})\n{% endif %}\n\n-- Order created yesterday, status updated today: MISSED",
+      "whyBad": "created_at never changes. An order created last week but updated today won't pass the created_at filter—it's stuck with old data forever. You'll only capture new records, never updates to existing ones. Your incremental model becomes a write-once, read-forever snapshot.",
+      "fixedCode": "-- FIXED: Filter on updated_at to capture changes\n\n{{\n  config(\n    materialized='incremental',\n    unique_key='order_id'\n  )\n}}\n\nselect\n  order_id,\n  customer_id,\n  status,\n  total_amount,\n  created_at,\n  updated_at\nfrom {{ source('ecommerce', 'orders') }}\n\n{% if is_incremental() %}\n  -- GOOD: updated_at captures both new records AND updates\n  where updated_at > (select max(updated_at) from {{ this }})\n{% endif %}",
+      "explanation": "Using updated_at (or a similar last-modified timestamp) captures both newly created records AND updates to existing records. The unique_key ensures updated records replace old versions. Now status changes, edits, and corrections all flow through.",
+      "prevention": "Use updated_at, modified_at, or last_updated for incremental filters—never created_at (unless you truly have append-only immutable events). If source lacks updated_at, consider using dbt snapshots instead.",
+      "tags": ["incremental", "updated_at", "timestamp"]
+    },
+    {
+      "id": "no-unique-key-with-merge",
+      "title": "No unique_key with merge strategy",
+      "category": "incremental",
+      "severity": "critical",
+      "description": "Incremental model using merge strategy without unique_key creates duplicates on every run",
+      "symptoms": [
+        "Row count doubles after each run",
+        "Duplicate records for same entity",
+        "Queries return multiple rows unexpectedly",
+        "Metrics are inflated"
+      ],
+      "brokenCode": "-- MISTAKE: Merge strategy without unique_key\n\n{{\n  config(\n    materialized='incremental',\n    incremental_strategy='merge'\n    -- Missing: unique_key='order_id'\n  )\n}}\n\nselect\n  order_id,\n  customer_id,\n  order_total,\n  updated_at\nfrom {{ source('sales', 'orders') }}\n\n{% if is_incremental() %}\n  where updated_at > (select max(updated_at) from {{ this }})\n{% endif %}\n\n-- Every run adds rows instead of updating\n-- Order 123 appears 10 times after 10 runs",
+      "whyBad": "Without unique_key, dbt doesn't know how to match new rows to existing ones. Every incremental run just appends rows—even if they already exist. You wanted updates but got duplicates. Row counts explode. Data quality collapses.",
+      "fixedCode": "-- FIXED: Specify unique_key for merge strategy\n\n{{\n  config(\n    materialized='incremental',\n    incremental_strategy='merge',\n    unique_key='order_id'  -- Tells dbt how to match rows\n  )\n}}\n\nselect\n  order_id,\n  customer_id,\n  order_total,\n  updated_at\nfrom {{ source('sales', 'orders') }}\n\n{% if is_incremental() %}\n  where updated_at > (select max(updated_at) from {{ this }})\n{% endif %}\n\n-- Now: order_id=123 gets updated, not duplicated",
+      "explanation": "The unique_key tells dbt how to match incoming rows to existing rows. On merge, dbt updates rows with matching keys instead of creating duplicates. Each order_id appears exactly once, with the latest data.",
+      "prevention": "If using incremental_strategy='merge' (the default), you MUST specify unique_key. For append-only data, use incremental_strategy='append' and skip unique_key. Test by running twice and checking row counts.",
+      "tags": ["incremental", "unique_key", "duplicates", "merge"]
+    }
+  ]
+}

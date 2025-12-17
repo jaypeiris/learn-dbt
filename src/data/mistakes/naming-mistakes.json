@@ -1,0 +1,45 @@
+{
+  "id": "naming-mistakes",
+  "title": "Naming Convention Mistakes",
+  "description": "Inconsistent or misleading names create confusion and tech debt",
+  "mistakes": [
+    {
+      "id": "version-numbers-in-names",
+      "title": "Version numbers in model names",
+      "category": "naming",
+      "severity": "major",
+      "description": "Models named with _v2, _v3, _final, _new accumulate as tech debt",
+      "symptoms": [
+        "Multiple versions of same model exist (customers_v2, customers_v3)",
+        "No one knows which version is 'real'",
+        "Old versions never get deleted",
+        "DAG filled with abandoned models"
+      ],
+      "brokenCode": "-- models/marts/customers.sql (original)\n-- models/marts/customers_v2.sql (someone's rewrite)\n-- models/marts/customers_final.sql (another rewrite)\n-- models/marts/customers_new.sql (yet another)\n-- models/marts/customers_actually_final.sql (desperation)\n\n-- All 5 models exist in production\n-- Some downstream models use customers_v2\n-- Others use customers_final\n-- No one dares delete the old ones",
+      "whyBad": "Version suffixes are tech debt incarnate. They pile up because people are scared to break downstream dependencies. Now you maintain 5 versions of the same model. Which one is correct? Who knows! This is how projects die slowly.",
+      "fixedCode": "-- CORRECT APPROACH:\n\n-- 1. Make changes directly to the model\n-- models/marts/customers.sql\nselect\n  customer_id,\n  customer_name,\n  new_column  -- Just add the new column here\nfrom {{ ref('stg_customers') }}\n\n-- 2. If breaking change, coordinate with downstream:\n--    a) Check what uses this: dbt ls --select customers+\n--    b) Update downstream models first\n--    c) Then update this model\n--    d) Delete old version\n\n-- 3. For major refactors, use feature branches:\n--    - Work on branch\n--    - Test with downstream models\n--    - Merge when ready\n--    - One model name, always",
+      "explanation": "Good version control (Git) replaces bad naming (v2, v3). Make changes in place. Use branches for development. Coordinate with downstream users. Delete old code after migration. One model name = one source of truth.",
+      "prevention": "Banned words in model names: v2, v3, final, new, temp, old, backup, copy. If you need a new version, improve the existing model or create a truly different model with a different purpose (and name).",
+      "tags": ["naming", "versioning", "tech-debt"]
+    },
+    {
+      "id": "inconsistent-prefixes",
+      "title": "Inconsistent layer prefixes",
+      "category": "naming",
+      "severity": "minor",
+      "description": "Mixing stg_, staging_, base_, src_ creates confusion about model purpose",
+      "symptoms": [
+        "Can't tell which layer a model belongs to",
+        "Some models use stg_, others use staging_",
+        "New developers don't know naming convention",
+        "Folder structure doesn't match naming"
+      ],
+      "brokenCode": "-- models/staging/\n-- INCONSISTENT: Multiple naming patterns\n\nstaging_customers.sql  -- Someone used 'staging_'\nstg_orders.sql         -- Someone else used 'stg_'\nbase_products.sql      -- What's 'base'?\nsrc_payments.sql       -- Is 'src' the same as staging?\nraw_refunds.sql        -- Or is it raw?\n\n-- Downstream developers are confused:\n-- \"Do I use staging_ or stg_?\"\n-- \"Is base_ a layer or just a prefix?\"",
+      "whyBad": "Inconsistency creates cognitive overhead. Developers waste time guessing conventions. Code reviews bikeshed over naming. New team members can't predict where things are. It signals lack of standards and care.",
+      "fixedCode": "-- CONSISTENT: Pick one convention and stick to it\n\n-- models/staging/\nstg_customers.sql   -- Always use stg_\nstg_orders.sql\nstg_products.sql\nstg_payments.sql\nstg_refunds.sql\n\n-- models/intermediate/\nint_customer_orders.sql     -- Always use int_\nint_order_payments.sql\n\n-- models/marts/\nfct_orders.sql              -- Facts use fct_\ndim_customers.sql           -- Dimensions use dim_\nmart_customer_summary.sql   -- Or use mart_ for mixed\n\n-- Document in README.md or dbt_project.yml\n# Naming conventions:\n# - Staging: stg_<entity>\n# - Intermediate: int_<purpose>\n# - Marts: fct_/dim_/mart_",
+      "explanation": "Pick a convention, document it, enforce it. stg_ for staging, int_ for intermediate, fct_/dim_ or mart_ for finals. Every model's purpose is clear from its name. No guessing, no confusion.",
+      "prevention": "Write naming conventions in your project README. Use pre-commit hooks or CI checks to enforce naming patterns. Reject PRs with inconsistent names.",
+      "tags": ["naming", "consistency", "conventions", "layers"]
+    }
+  ]
+}

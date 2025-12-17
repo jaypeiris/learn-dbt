@@ -6,11 +6,23 @@ import type { Mistake, MistakeCollection } from '../../types/mistake'
 import architectureMistakes from '../data/mistakes/architecture-mistakes.json'
 import dependencyMistakes from '../data/mistakes/dependency-mistakes.json'
 import grainMistakes from '../data/mistakes/grain-mistakes.json'
+import incrementalMistakes from '../data/mistakes/incremental-mistakes.json'
+import testingMistakes from '../data/mistakes/testing-mistakes.json'
+import sourceMistakes from '../data/mistakes/source-mistakes.json'
+import namingMistakes from '../data/mistakes/naming-mistakes.json'
+import performanceMistakes from '../data/mistakes/performance-mistakes.json'
+import jinjaMistakes from '../data/mistakes/jinja-mistakes.json'
 
 const mistakeCollections: MistakeCollection[] = [
   architectureMistakes as MistakeCollection,
   dependencyMistakes as MistakeCollection,
   grainMistakes as MistakeCollection,
+  incrementalMistakes as MistakeCollection,
+  testingMistakes as MistakeCollection,
+  sourceMistakes as MistakeCollection,
+  namingMistakes as MistakeCollection,
+  performanceMistakes as MistakeCollection,
+  jinjaMistakes as MistakeCollection,
 ]
 
 /**

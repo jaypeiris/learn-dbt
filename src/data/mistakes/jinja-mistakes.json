@@ -1,0 +1,45 @@
+{
+  "id": "jinja-mistakes",
+  "title": "Jinja & Macro Mistakes",
+  "description": "Common Jinja errors that break builds or create unmaintainable code",
+  "mistakes": [
+    {
+      "id": "hardcoded-list-instead-of-dynamic",
+      "title": "Hardcoded lists instead of dynamic queries",
+      "category": "jinja",
+      "severity": "minor",
+      "description": "Manually typing column values for pivots instead of querying them dynamically",
+      "symptoms": [
+        "Model breaks when new values appear in source",
+        "Have to manually update model every time categories change",
+        "Columns missing from pivot after new product types added",
+        "Code review comments: 'Why is this hardcoded?'"
+      ],
+      "brokenCode": "-- MISTAKE: Hardcoded list of payment methods\n-- What happens when 'crypto' gets added?\n\n{% set payment_methods = ['credit_card', 'paypal', 'bank_transfer'] %}\n\nselect\n  customer_id,\n  {% for method in payment_methods %}\n    sum(case when payment_method = '{{ method }}'\n        then amount else 0 end) as {{ method }}_total\n    {%- if not loop.last %},{% endif %}\n  {% endfor %}\nfrom {{ ref('fct_payments') }}\ngroup by 1\n\n-- New payment method 'crypto' added to source\n-- This model doesn't show it - breaks silently",
+      "whyBad": "Hardcoded lists rot. New categories appear in your source data but not in your model. You don't notice until someone asks 'why is crypto revenue missing?' Then you manually update the list, run dbt again, and hope you didn't miss others.",
+      "fixedCode": "-- FIXED: Query distinct values dynamically\n\n{% set payment_methods_query %}\n  select distinct payment_method\n  from {{ ref('fct_payments') }}\n  order by payment_method\n{% endset %}\n\n{% set results = run_query(payment_methods_query) %}\n\n{% if execute %}\n  {% set payment_methods = results.columns[0].values() %}\n{% else %}\n  {% set payment_methods = [] %}\n{% endif %}\n\nselect\n  customer_id,\n  {% for method in payment_methods %}\n    sum(case when payment_method = '{{ method }}'\n        then amount else 0 end) as {{ method }}_total\n    {%- if not loop.last %},{% endif %}\n  {% endfor %}\nfrom {{ ref('fct_payments') }}\ngroup by 1\n\n-- Or use dbt_utils.get_column_values():\n{% set payment_methods = dbt_utils.get_column_values(\n    table=ref('fct_payments'),\n    column='payment_method'\n) %}",
+      "explanation": "Dynamic queries adapt automatically. When 'crypto' appears in the source, run_query() picks it up. No code changes needed. The model stays current as data evolves. Use dbt_utils.get_column_values() for the simplest version.",
+      "prevention": "Don't hardcode lists of values that come from data. Use run_query() or dbt_utils.get_column_values() to query them dynamically. Only hardcode truly static lists (like month names).",
+      "tags": ["jinja", "dynamic", "run_query", "dbt_utils"]
+    },
+    {
+      "id": "missing-execute-check",
+      "title": "Missing {% if execute %} guard",
+      "category": "jinja",
+      "severity": "major",
+      "description": "Running queries during parse phase causes errors and slow performance",
+      "symptoms": [
+        "dbt ls or dbt compile is very slow",
+        "Errors during dbt parse about tables not existing",
+        "Parse phase tries to query tables that don't exist yet",
+        "Confusing errors about missing relations during compilation"
+      ],
+      "brokenCode": "-- MISTAKE: run_query() without execute check\n\n{% set max_date_query %}\n  select max(order_date) from {{ ref('fct_orders') }}\n{% endset %}\n\n-- BAD: Runs during parse phase when table might not exist\n{% set max_date = run_query(max_date_query).columns[0][0] %}\n\nselect *\nfrom {{ ref('stg_orders') }}\nwhere order_date <= '{{ max_date }}'\n\n-- Error during dbt ls:\n-- \"Relation fct_orders does not exist\"",
+      "whyBad": "run_query() executes during parse phase (dbt ls, dbt compile) before models are built. If the table doesn't exist yet, the query fails. Even if it exists, you're running expensive queries just to parse—making dbt ls painfully slow.",
+      "fixedCode": "-- FIXED: Wrap in {% if execute %}\n\n{% set max_date_query %}\n  select max(order_date) from {{ ref('fct_orders') }}\n{% endset %}\n\n{% if execute %}\n  -- Only run during execution phase, not parse\n  {% set max_date_result = run_query(max_date_query) %}\n  {% set max_date = max_date_result.columns[0][0] %}\n{% else %}\n  -- Parse phase: use a dummy value\n  {% set max_date = '2024-01-01' %}\n{% endif %}\n\nselect *\nfrom {{ ref('stg_orders') }}\nwhere order_date <= '{{ max_date }}'",
+      "explanation": "The execute variable is False during parse/compile and True during actual execution. Wrapping run_query() in {% if execute %} prevents queries from running during parse. Parse is fast, execution queries only run when needed.",
+      "prevention": "Always wrap run_query() in {% if execute %}. Provide a sensible default value for the {% else %} branch (used during parse). This is a hard requirement, not optional.",
+      "tags": ["jinja", "execute", "run_query", "parse-phase"]
+    }
+  ]
+}
