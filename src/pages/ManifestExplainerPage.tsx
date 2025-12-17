@@ -27,24 +27,43 @@ export default function ManifestExplainerPage() {
   return (
     <div className="manifest-page">
       <section className="manifest-hero">
-        <p className="eyebrow">Manifest explainer</p>
-        <h2>What is the manifest.json file?</h2>
+        <p className="eyebrow">Reference Guide</p>
+        <h2>Understanding the dbt Manifest</h2>
         <p>
-          dbt writes a manifest after compiling SQL. It lists every model, its resources, and dependency graph. This page
-          uses a fictional manifest to show how dbt understands lineage internally. It never introspects your real
-          project.
+          The <code>manifest.json</code> file is dbt's compiled representation of your entire project. Generated during{' '}
+          <code>dbt compile</code> or <code>dbt run</code>, it maps every model, test, source, and their dependencies into
+          a directed acyclic graph (DAG). This page uses a sample manifest to demonstrate how dbt tracks lineage and
+          build order.
         </p>
+        <div className="manifest-info-grid">
+          <div className="info-card">
+            <h3>Where to find it</h3>
+            <p><code>target/manifest.json</code> in your dbt project</p>
+          </div>
+          <div className="info-card">
+            <h3>When it's created</h3>
+            <p>Every <code>dbt compile</code>, <code>dbt run</code>, or <code>dbt build</code></p>
+          </div>
+          <div className="info-card">
+            <h3>What it contains</h3>
+            <p>All nodes (models, tests, sources), their SQL, configs, and dependencies</p>
+          </div>
+          <div className="info-card">
+            <h3>Why it matters</h3>
+            <p>Powers dbt docs, state-based selection, and build orchestration</p>
+          </div>
+        </div>
         <dl>
           <div>
-            <dt>Project name</dt>
+            <dt>Sample project</dt>
             <dd>{manifest.metadata.projectName}</dd>
           </div>
           <div>
-            <dt>Generated at</dt>
+            <dt>Generated</dt>
             <dd>{manifest.metadata.generatedAt}</dd>
           </div>
           <div>
-            <dt>Adapter</dt>
+            <dt>Database adapter</dt>
             <dd>{manifest.metadata.adapterType}</dd>
           </div>
         </dl>
@@ -76,17 +95,32 @@ export default function ManifestExplainerPage() {
           <LineageGraph graph={graph} />
           <div className="manifest-notes">
             <div>
-              <h4>Why stored in manifest?</h4>
+              <h4>How dependencies are tracked</h4>
               <p>
-                dbt Cloud and the CLI both compile SQL. The manifest records the compiled graph so future commands can
-                reuse it without parsing raw SQL every time.
+                Every <code>ref('model_name')</code> in your SQL creates an entry in the <code>dependsOn</code> array. dbt uses this to
+                determine build order. Models with no dependencies run first; downstream models wait for their upstream refs to complete.
               </p>
             </div>
             <div>
-              <h4>How it links back</h4>
+              <h4>State-based selection</h4>
               <p>
-                Each dependency shown here originated from a ref() call. You can see the same relationships visualised in
-                the Lessons tab.
+                Commands like <code>dbt run --select state:modified+</code> compare the current manifest to a previous one
+                (from prod) to detect changes. Only modified models and their downstream dependencies get rebuilt—saving time in CI/CD.
+              </p>
+            </div>
+            <div>
+              <h4>Powers dbt docs</h4>
+              <p>
+                <code>dbt docs generate</code> reads the manifest to create the documentation site. The interactive lineage graph,
+                model descriptions, and column-level metadata all come from manifest.json. Run <code>dbt docs serve</code> to explore it locally.
+              </p>
+            </div>
+            <div>
+              <h4>What's in each node</h4>
+              <p>
+                Every node contains: <code>uniqueId</code> (identifier), <code>name</code>, <code>compiled_sql</code> (after Jinja rendering),{' '}
+                <code>dependsOn</code> (refs), <code>config</code> (materialization, tags), and <code>columns</code> (schema). This makes the
+                manifest a complete snapshot of your project at compile time.
               </p>
             </div>
           </div>

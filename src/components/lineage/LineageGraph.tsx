@@ -9,11 +9,12 @@ type PositionedNode = LineageNode & { x: number; y: number }
 
 const SVG_WIDTH = 900
 const ROW_SPACING = 180
+const TOP_PADDING = 60
 
 export default function LineageGraph({ graph }: LineageGraphProps) {
   const positioned = positionNodes(graph.nodes)
   const rowsUsed = Math.max(...positioned.map((node) => node.y / ROW_SPACING))
-  const height = ROW_SPACING * (rowsUsed + 1)
+  const height = ROW_SPACING * (rowsUsed + 1) + TOP_PADDING
 
   return (
     <div className="lineage-graph">
@@ -98,7 +99,7 @@ function positionNodes(nodes: LineageNode[]): PositionedNode[] {
     return group.map((node, index) => ({
       ...node,
       x: gap * (index + 1),
-      y: ROW_SPACING * rowIndex,
+      y: ROW_SPACING * rowIndex + TOP_PADDING,
     }))
   }
 

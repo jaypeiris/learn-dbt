@@ -1,0 +1,90 @@
+{
+  "id": "module-07-lesson-05-dynamic-sql",
+  "title": "Module 7 Lesson 5 - Dynamic SQL patterns",
+  "summary": "Combine Jinja techniques to build data-driven models that adapt automatically.",
+  "description": "This capstone combines variables, loops, macros, and the execute guard to generate a pivot-like output. The goal is the pattern: query → loop → generate columns (safely).",
+  "concept": "Dynamic SQL is powerful when the shape of the data changes over time.",
+  "starterState": "Static pivot (capstone)",
+  "hint": "Use `{% if execute %}` + `run_query()` to collect categories, loop to generate CASE columns, and keep at least one `ref()` in the model.",
+  "models": [
+    {
+      "id": "module07_lesson05_dynamic_pivot",
+      "title": "dynamic_pivot.sql",
+      "description": "Build a dynamic pivot using execute + run_query + for-loop.",
+      "editable": true,
+      "sql": "-- Goal: build a pivot-like model that adapts to new statuses.\n-- Pattern: query → loop → generate columns (guarded with execute).\n\n-- TODO 1: Add `{% if execute %}` guard.\n-- TODO 2: Inside the guard, use run_query() to collect distinct statuses.\n-- TODO 3: Loop over statuses to generate one column per status.\n\nselect\n  customer_id,\n  -- TODO: generate columns like:\n  -- sum(case when status = 'completed' then 1 else 0 end) as completed_orders\n  count(*) as total_orders\nfrom {{ ref('stg_orders') }}\ngroup by customer_id"
+    },
+    {
+      "id": "module07_lesson05_pivot_step1",
+      "title": "pivot_step1.sql (static example)",
+      "description": "A static pivot breaks when new categories appear.",
+      "editable": false,
+      "sql": "select\n  customer_id,\n  sum(case when status = 'completed' then 1 else 0 end) as completed_orders,\n  sum(case when status = 'refunded' then 1 else 0 end) as refunded_orders,\n  count(*) as total_orders\nfrom {{ ref('stg_orders') }}\ngroup by customer_id"
+    },
+    {
+      "id": "module07_lesson05_pivot_final",
+      "title": "pivot_final.sql (reference)",
+      "description": "A reference pattern (simplified) for dynamic pivots.",
+      "editable": false,
+      "sql": "{% macro status_count(col, status) -%}\n  sum(case when {{ col }} = '{{ status }}' then 1 else 0 end)\n{%- endmacro %}\n\n{% if execute %}\n  {% set statuses = ['completed', 'refunded', 'canceled'] %}\n{% else %}\n  {% set statuses = [] %}\n{% endif %}\n\nselect\n  customer_id,\n{% for status in statuses %}\n  {{ status_count('status', status) }} as {{ status }}_orders{% if not loop.last %},{% endif %}\n{% endfor %}\n{% if statuses | length > 0 %},{% endif %}\n  count(*) as total_orders\nfrom {{ ref('stg_orders') }}\ngroup by customer_id"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module07_lesson05_task_execute",
+      "prompt": "Wrap runtime-only logic with {% if execute %}.",
+      "check": {
+        "type": "contains_text",
+        "value": "{% if execute %}",
+        "hint": "Add an execute guard before any run_query() or dynamic list building."
+      }
+    },
+    {
+      "id": "module07_lesson05_task_run_query",
+      "prompt": "Use run_query() to fetch a dynamic list of categories/statuses.",
+      "check": {
+        "type": "contains_text",
+        "value": "run_query",
+        "hint": "Try: {% set results = run_query(\"select distinct status from ...\") %}."
+      }
+    },
+    {
+      "id": "module07_lesson05_task_loop",
+      "prompt": "Loop over the dynamic list with {% for %} to generate columns.",
+      "check": {
+        "type": "contains_text",
+        "value": "{% for",
+        "hint": "Add a loop like: {% for status in statuses %} ... {% endfor %}"
+      }
+    },
+    {
+      "id": "module07_lesson05_task_ref",
+      "prompt": "Reference at least one upstream model with ref().",
+      "check": {
+        "type": "min_unique_refs",
+        "value": 1,
+        "hint": "Keep at least one {{ ref('...') }} in your final SQL."
+      }
+    }
+  ],
+  "revealSections": [
+    {
+      "title": "Why dynamic pivots matter",
+      "body": "Static pivots require manual updates every time a new category appears. Dynamic pivots adapt automatically to new values."
+    },
+    {
+      "title": "The pattern",
+      "body": "The core loop is: query for categories → loop over them → generate SQL. The execute guard keeps the model parseable when the warehouse isn’t available."
+    },
+    {
+      "title": "Common use cases",
+      "body": "Product types, regions, status flags, and time buckets are common candidates. Prefer dynamic patterns only when categories are bounded and meaningful."
+    },
+    {
+      "title": "Performance considerations",
+      "body": "Dynamic SQL can generate wide tables and long compile times. Use it when it reduces operational overhead more than it costs in complexity."
+    }
+  ],
+  "takeaway": "Dynamic SQL is a tool: powerful for changing categories, but best when used intentionally."
+}
+

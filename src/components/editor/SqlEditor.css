@@ -108,6 +108,14 @@
   font-weight: 600;
 }
 
+/* Jinja (dbt) highlighting */
+.sql-editor__codemirror :global(.cm-jinja) {
+  color: var(--brand-navy-800);
+  background: var(--brand-gold-50);
+  border-radius: 4px;
+  padding: 0 2px;
+}
+
 /* Read-only styling */
 .sql-editor__codemirror :global(.cm-editor.cm-editor-readonly) {
   background: var(--neutral-100);

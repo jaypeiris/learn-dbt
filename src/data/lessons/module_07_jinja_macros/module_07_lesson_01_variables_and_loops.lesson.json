@@ -1,0 +1,91 @@
+{
+  "id": "module-07-lesson-01-variables-loops",
+  "title": "Module 7 Lesson 1 - Jinja variables and loops",
+  "summary": "Use {% set %} and {% for %} to make SQL dynamic and maintainable.",
+  "description": "Hardcoding column lists is fragile. In this lesson you'll use Jinja variables and loops to generate a SELECT list, and you'll handle commas correctly with loop properties.",
+  "concept": "Jinja turns repetitive SQL into a small, readable template.",
+  "starterState": "Hardcoded column list",
+  "hint": "Define a list with `{% set columns = [...] %}`, loop with `{% for col in columns %}`, and use `loop.last` to avoid trailing commas.",
+  "models": [
+    {
+      "id": "module07_lesson01_hardcoded_columns",
+      "title": "hardcoded_columns.sql",
+      "description": "Make the SELECT list dynamic using Jinja.",
+      "editable": true,
+      "sql": "-- Goal: generate the SELECT columns dynamically.\n-- Right now this list is hardcoded and easy to forget to update.\n\nselect\n  order_id,\n  customer_id,\n  order_date,\n  order_total_cents\nfrom {{ ref('stg_orders') }}"
+    },
+    {
+      "id": "module07_lesson01_dynamic_example",
+      "title": "dynamic_example.sql (reference)",
+      "description": "A reference implementation using a variable + for-loop.",
+      "editable": false,
+      "sql": "{% set columns = ['order_id', 'customer_id', 'order_date', 'order_total_cents'] %}\n\nselect\n{% for col in columns %}\n  {{ col }}{% if not loop.last %},{% endif %}\n{% endfor %}\nfrom {{ ref('stg_orders') }}"
+    },
+    {
+      "id": "module07_lesson01_loop_properties",
+      "title": "loop_properties.sql (reference)",
+      "description": "Loop helpers you can use to format SQL.",
+      "editable": false,
+      "sql": "-- Jinja exposes helpful loop variables:\n-- loop.index (1-based), loop.index0 (0-based)\n-- loop.first (boolean), loop.last (boolean)\n-- loop.length (total items)\n\n{% set cols = ['a', 'b', 'c'] %}\n\nselect\n{% for col in cols %}\n  '{{ col }}' as col_name,\n  {{ loop.index }} as loop_index,\n  {{ loop.index0 }} as loop_index0,\n  {{ loop.first }} as is_first,\n  {{ loop.last }} as is_last\n{% endfor %}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module07_lesson01_task_set",
+      "prompt": "Create a Jinja variable named columns using {% set %}.",
+      "check": {
+        "type": "contains_text",
+        "value": "{% set",
+        "hint": "Add a line like: {% set columns = ['order_id', ...] %}"
+      }
+    },
+    {
+      "id": "module07_lesson01_task_for",
+      "prompt": "Loop through the columns with a {% for %} loop.",
+      "check": {
+        "type": "contains_text",
+        "value": "{% for",
+        "hint": "Add a block like: {% for col in columns %} ... {% endfor %}"
+      }
+    },
+    {
+      "id": "module07_lesson01_task_commas",
+      "prompt": "Use loop.last to avoid a trailing comma.",
+      "check": {
+        "type": "contains_text",
+        "value": "loop.last",
+        "hint": "Try: {{ col }}{% if not loop.last %},{% endif %}"
+      }
+    }
+  ],
+  "revealSections": [
+    {
+      "title": "How Jinja variables work",
+      "body": "Use `{% set name = value %}` to store lists, strings, and numbers. dbt renders the template first, then sends the resulting SQL to your warehouse."
+    },
+    {
+      "title": "Why dynamic columns matter",
+      "body": "Hardcoded select lists drift as columns are added/removed. A single variable (or macro) makes it obvious where to update logic and reduces copy/paste mistakes."
+    },
+    {
+      "title": "Loop properties",
+      "body": "Use `loop.first` / `loop.last` for formatting, and `loop.index` / `loop.length` for debugging. These helpers are the difference between \"almost\" dynamic SQL and production-ready templates."
+    }
+  ],
+  "comparisons": [
+    {
+      "title": "Static vs dynamic column list",
+      "left": {
+        "label": "Static",
+        "code": "select\\n  order_id,\\n  customer_id,\\n  order_date\\nfrom {{ ref('stg_orders') }}"
+      },
+      "right": {
+        "label": "Dynamic",
+        "code": "{% set columns = ['order_id', 'customer_id', 'order_date'] %}\\n\\nselect\\n{% for col in columns %}\\n  {{ col }}{% if not loop.last %},{% endif %}\\n{% endfor %}\\nfrom {{ ref('stg_orders') }}"
+      },
+      "note": "The dynamic pattern keeps formatting clean and avoids stale lists."
+    }
+  ],
+  "takeaway": "Use variables + loops to reduce repetition while keeping SQL readable."
+}
+

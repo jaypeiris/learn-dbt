@@ -1,0 +1,95 @@
+{
+  "id": "module-07-lesson-02-writing-macros",
+  "title": "Module 7 Lesson 2 - Writing reusable macros",
+  "summary": "Create {% macro %} blocks to eliminate duplicated SQL logic.",
+  "description": "Macros are dbt's way to turn a repeated SQL pattern into a reusable function. You'll define a simple macro and call it in your SELECT to keep business logic DRY.",
+  "concept": "Macros are functions for SQL templates. Write once, reuse everywhere.",
+  "starterState": "Repeated SQL logic",
+  "hint": "Define a macro with `{% macro name(arg) %}` and call it with `{{ name('arg') }}`.",
+  "models": [
+    {
+      "id": "module07_lesson02_with_macro",
+      "title": "macro_playground.sql",
+      "description": "Define a macro and use it to convert cents to dollars.",
+      "editable": true,
+      "sql": "-- Goal: define a reusable macro and call it.\n-- In a real dbt project, macros live in the macros/ directory.\n\n-- TODO 1: define `{% macro cents_to_dollars(column_name) %}`\n-- TODO 2: end it with `{% endmacro %}`\n-- TODO 3: call it as `{{ cents_to_dollars('order_total_cents') }}`\n\nselect\n  order_id,\n  order_total_cents,\n  -- Replace this with a macro call:\n  (order_total_cents / 100.0) as order_total_dollars\nfrom {{ ref('stg_orders') }}"
+    },
+    {
+      "id": "module07_lesson02_repeated_logic",
+      "title": "repeated_logic.sql (context)",
+      "description": "An example of duplicated logic that a macro would remove.",
+      "editable": false,
+      "sql": "-- Two different models could both repeat this expression:\n-- (order_total_cents / 100.0)\n-- (tax_total_cents / 100.0)\n-- (shipping_cents / 100.0)\n-- A macro lets you write this pattern once."
+    },
+    {
+      "id": "module07_lesson02_macro_example",
+      "title": "macro_example.sql (reference)",
+      "description": "A reference implementation of the macro.",
+      "editable": false,
+      "sql": "{% macro cents_to_dollars(column_name) -%}\n  ({{ column_name }} / 100.0)\n{%- endmacro %}\n\nselect\n  order_id,\n  {{ cents_to_dollars('order_total_cents') }} as order_total_dollars\nfrom {{ ref('stg_orders') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module07_lesson02_task_macro",
+      "prompt": "Define a macro using {% macro %}.",
+      "check": {
+        "type": "contains_text",
+        "value": "{% macro",
+        "hint": "Add a macro definition above your select statement."
+      }
+    },
+    {
+      "id": "module07_lesson02_task_endmacro",
+      "prompt": "Close the macro with {% endmacro %}.",
+      "check": {
+        "type": "contains_text",
+        "value": "{% endmacro",
+        "hint": "End the macro block with `{% endmacro %}` (dashes are optional)."
+      }
+    },
+    {
+      "id": "module07_lesson02_task_call",
+      "prompt": "Call your macro with {{ cents_to_dollars(...) }}.",
+      "check": {
+        "type": "contains_text",
+        "value": "{{ cents_to_dollars",
+        "hint": "Replace `(order_total_cents / 100.0)` with `{{ cents_to_dollars('order_total_cents') }}`."
+      }
+    }
+  ],
+  "revealSections": [
+    {
+      "title": "What macros are",
+      "body": "Macros are Jinja functions that return SQL text. They help you express intent (\"convert cents to dollars\") instead of repeating raw expressions everywhere."
+    },
+    {
+      "title": "Macro arguments",
+      "body": "Pass strings, numbers, or lists as arguments. A common pattern is passing column names as strings and inserting them into SQL with `{{ column_name }}`."
+    },
+    {
+      "title": "Where macros live",
+      "body": "In real dbt, macros live in `macros/`. dbt loads them at parse time so they’re available across the entire project."
+    },
+    {
+      "title": "Macro scope",
+      "body": "Macros are global within the project (and packages). Once defined, you can call them from any model, test, or other macro."
+    }
+  ],
+  "comparisons": [
+    {
+      "title": "Duplicated logic vs macro",
+      "left": {
+        "label": "Duplicated",
+        "code": "select\\n  (order_total_cents / 100.0) as order_total_dollars,\\n  (tax_total_cents / 100.0) as tax_total_dollars\\nfrom {{ ref('stg_orders') }}"
+      },
+      "right": {
+        "label": "Macro",
+        "code": "{% macro cents_to_dollars(col) %}({{ col }} / 100.0){% endmacro %}\\n\\nselect\\n  {{ cents_to_dollars('order_total_cents') }} as order_total_dollars,\\n  {{ cents_to_dollars('tax_total_cents') }} as tax_total_dollars\\nfrom {{ ref('stg_orders') }}"
+      },
+      "note": "The macro makes the intent obvious and keeps changes centralized."
+    }
+  ],
+  "takeaway": "Macros reduce repetition and make transformations easier to change safely."
+}
+

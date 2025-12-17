@@ -22,15 +22,15 @@
       "steps": [
         {
           "type": "lesson",
-          "id": "module-01-what-is-dbt",
-          "title": "What dbt Core is",
-          "description": "Understand dbt's role in the data stack",
+          "id": "module-01-intro-to-refs",
+          "title": "Intro to ref()",
+          "description": "See how ref() stitches staging layers into a mart model",
           "estimated_time": "10 min"
         },
         {
           "type": "lesson",
-          "id": "module-01-ref-basics",
-          "title": "ref() basics",
+          "id": "module-01-lesson-02-why-ref",
+          "title": "Why ref() exists",
           "description": "Learn how dbt tracks dependencies",
           "estimated_time": "12 min"
         },
@@ -43,21 +43,21 @@
         },
         {
           "type": "lesson",
-          "id": "module-02-staging-layer",
-          "title": "Staging layer purpose",
+          "id": "module-02-lesson-01-why-staging",
+          "title": "Why staging models exist",
           "description": "Why staging should be boring",
           "estimated_time": "10 min"
         },
         {
           "type": "lesson",
-          "id": "module-02-marts",
-          "title": "Marts layer",
+          "id": "module-02-lesson-04-marts",
+          "title": "Marts represent business concepts",
           "description": "Business-facing models",
           "estimated_time": "12 min"
         },
         {
           "type": "lesson",
-          "id": "module-02-grain",
+          "id": "module-02-lesson-06-grain",
           "title": "Understanding grain",
           "description": "What one row represents",
           "estimated_time": "15 min"
@@ -71,8 +71,8 @@
         },
         {
           "type": "lesson",
-          "id": "module-04-tests-intro",
-          "title": "Introduction to tests",
+          "id": "module-04-lesson-01-tests-are-questions",
+          "title": "What a test really is",
           "description": "Making assumptions visible",
           "estimated_time": "12 min"
         },
@@ -85,8 +85,8 @@
         },
         {
           "type": "lesson",
-          "id": "module-04-documentation",
-          "title": "Documentation",
+          "id": "module-04-lesson-03-documentation",
+          "title": "Why documentation exists",
           "description": "Document models and columns",
           "estimated_time": "10 min"
         },
@@ -129,14 +129,14 @@
       "steps": [
         {
           "type": "lesson",
-          "id": "module-01-ref-basics",
+          "id": "module-01-lesson-02-why-ref",
           "title": "ref() and dependencies",
           "description": "Foundation of dbt's DAG",
           "estimated_time": "12 min"
         },
         {
           "type": "lesson",
-          "id": "module-02-intermediate-models",
+          "id": "module-02-lesson-03-intermediate",
           "title": "Intermediate layer",
           "description": "Reusable business logic",
           "estimated_time": "15 min"
@@ -150,14 +150,14 @@
         },
         {
           "type": "lesson",
-          "id": "module-03-materializations",
-          "title": "Materializations overview",
+          "id": "module-03-lesson-01-materialization-basics",
+          "title": "What a materialization is",
           "description": "View, table, incremental, ephemeral",
           "estimated_time": "15 min"
         },
         {
           "type": "lesson",
-          "id": "module-03-incremental",
+          "id": "module-03-lesson-03-incremental",
           "title": "Incremental models",
           "description": "For large, growing datasets",
           "estimated_time": "18 min"
@@ -171,7 +171,7 @@
         },
         {
           "type": "lesson",
-          "id": "module-04-tests-intro",
+          "id": "module-04-lesson-01-tests-are-questions",
           "title": "Testing strategies",
           "description": "Generic vs singular tests",
           "estimated_time": "12 min"
@@ -185,8 +185,8 @@
         },
         {
           "type": "lesson",
-          "id": "module-05-snapshots",
-          "title": "Snapshots",
+          "id": "module-05-lesson-01-current-vs-historical",
+          "title": "Current vs historical state",
           "description": "Track changes over time",
           "estimated_time": "15 min"
         },
@@ -213,7 +213,7 @@
         },
         {
           "type": "lesson",
-          "id": "module-06-manifest",
+          "id": "module-06-lesson-01-graph-not-script",
           "title": "How dbt builds the graph",
           "description": "Understand dbt's internals",
           "estimated_time": "20 min"
@@ -243,50 +243,50 @@
       "steps": [
         {
           "type": "lesson",
-          "id": "module-01-what-is-dbt",
-          "title": "What dbt Core is",
-          "description": "Quick context",
+          "id": "module-01-intro-to-refs",
+          "title": "Intro to ref()",
+          "description": "Quick context on how ref() works",
           "estimated_time": "10 min"
         },
         {
           "type": "lesson",
-          "id": "module-01-ref-basics",
-          "title": "ref() creates dependencies",
+          "id": "module-01-lesson-02-why-ref",
+          "title": "Why ref() exists",
           "description": "How models connect",
           "estimated_time": "12 min"
         },
         {
           "type": "lesson",
-          "id": "module-02-staging-layer",
-          "title": "Staging = boring",
+          "id": "module-02-lesson-01-why-staging",
+          "title": "Why staging models exist",
           "description": "What to expect in stg_ models",
           "estimated_time": "10 min"
         },
         {
           "type": "lesson",
-          "id": "module-02-intermediate-models",
-          "title": "Intermediate = reusable logic",
+          "id": "module-02-lesson-03-intermediate",
+          "title": "Intermediate models reduce cognitive load",
           "description": "Where business rules live",
           "estimated_time": "15 min"
         },
         {
           "type": "lesson",
-          "id": "module-02-marts",
-          "title": "Marts = business-facing",
+          "id": "module-02-lesson-04-marts",
+          "title": "Marts represent business concepts",
           "description": "Final outputs",
           "estimated_time": "12 min"
         },
         {
           "type": "lesson",
-          "id": "module-02-grain",
-          "title": "Reading grain",
+          "id": "module-02-lesson-06-grain",
+          "title": "Understanding grain",
           "description": "What does one row mean?",
           "estimated_time": "15 min"
         },
         {
           "type": "lesson",
-          "id": "module-03-materializations",
-          "title": "Materialization = what dbt creates",
+          "id": "module-03-lesson-01-materialization-basics",
+          "title": "What a materialization is",
           "description": "View vs table vs incremental",
           "estimated_time": "15 min"
         },
@@ -313,7 +313,7 @@
         },
         {
           "type": "lesson",
-          "id": "module-06-manifest",
+          "id": "module-06-lesson-01-graph-not-script",
           "title": "The manifest = dbt's memory",
           "description": "How to read the graph",
           "estimated_time": "20 min"

@@ -1,7 +1,14 @@
 {
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/learn_dbt/",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/learn_dbt/:match*",
       "destination": "/index.html"
     }
   ]

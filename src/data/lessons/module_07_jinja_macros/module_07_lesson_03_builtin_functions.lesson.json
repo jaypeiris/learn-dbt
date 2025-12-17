@@ -1,0 +1,74 @@
+{
+  "id": "module-07-lesson-03-builtin-functions",
+  "title": "Module 7 Lesson 3 - Built-in dbt functions",
+  "summary": "Use target, execute, and run_query() for context-aware models.",
+  "description": "dbt injects special variables and helpers into Jinja so your models can respond to environment and runtime context. You'll add the three most common patterns: target, {% if execute %}, and run_query().",
+  "concept": "dbt compiles templates twice: parse-time (no warehouse) and run-time (warehouse available).",
+  "starterState": "Unsafe runtime logic",
+  "hint": "Use `target.name` for environment-aware logic, and wrap `run_query()` inside `{% if execute %}` so parsing stays safe.",
+  "models": [
+    {
+      "id": "module07_lesson03_builtins",
+      "title": "builtins_playground.sql",
+      "description": "Add target.name, an execute guard, and a run_query() call.",
+      "editable": true,
+      "sql": "-- Goal: make this model \"dbt-aware\".\n-- 1) Reference target.name\n-- 2) Add an `{% if execute %}` guard\n-- 3) Use run_query() inside the guard\n\n-- TODO: add a conditional using target.name (e.g. choose a schema suffix)\n\n-- TODO: add an execute guard before calling run_query\n-- {% set results = run_query(\"select 'US' as country\") %}\n\nselect\n  'todo' as target_name,\n  'todo' as schema_suffix"
+    },
+    {
+      "id": "module07_lesson03_builtin_reference",
+      "title": "builtin_reference.sql (reference)",
+      "description": "A reference implementation showing the safe pattern.",
+      "editable": false,
+      "sql": "{% set schema_suffix = 'dev' if target.name == 'dev' else 'prod' %}\n\n{% if execute %}\n  {% set results = run_query(\"select 'US' as country union all select 'CA' as country\") %}\n{% endif %}\n\nselect\n  '{{ target.name }}' as target_name,\n  '{{ schema_suffix }}' as schema_suffix"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module07_lesson03_task_target",
+      "prompt": "Use the target variable (e.g. target.name) in your model.",
+      "check": {
+        "type": "contains_text",
+        "value": "target.name",
+        "hint": "Add something like: {% if target.name == 'dev' %} ... {% endif %}"
+      }
+    },
+    {
+      "id": "module07_lesson03_task_execute",
+      "prompt": "Add a parse-safe execute guard: {% if execute %}.",
+      "check": {
+        "type": "contains_text",
+        "value": "{% if execute %}",
+        "hint": "Wrap any runtime-only code with `{% if execute %}` ... `{% endif %}`."
+      }
+    },
+    {
+      "id": "module07_lesson03_task_run_query",
+      "prompt": "Call run_query() (inside your execute guard).",
+      "check": {
+        "type": "contains_text",
+        "value": "run_query",
+        "hint": "Add something like: {% set results = run_query(\"select ...\") %}."
+      }
+    }
+  ],
+  "revealSections": [
+    {
+      "title": "The target variable",
+      "body": "`target` describes the current environment (dev/prod) and connection settings. Common fields: `target.name`, `target.schema`, `target.database`, and `target.type`."
+    },
+    {
+      "title": "Parse vs execute phases",
+      "body": "dbt parses your project for metadata even when it can’t (or shouldn’t) connect to a warehouse. That’s why some functions must be guarded to keep `dbt ls` and docs generation working."
+    },
+    {
+      "title": "run_query() safely",
+      "body": "Always wrap `run_query()` inside `{% if execute %}`. Without the guard, commands like `dbt ls` can error during parsing because dbt hasn’t established a connection yet."
+    },
+    {
+      "title": "Other built-ins",
+      "body": "You’ll also see `var()`, `env_var()`, `modules`, and adapter-specific helpers. The core idea is the same: use context intentionally, and keep parse-time safe."
+    }
+  ],
+  "takeaway": "Use built-ins to make models context-aware, but keep parsing safe with execute guards."
+}
+

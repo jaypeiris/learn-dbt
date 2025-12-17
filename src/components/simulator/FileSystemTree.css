@@ -1,0 +1,92 @@
+.fs-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.fs-node {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.fs-node:hover {
+  background: var(--neutral-100);
+}
+
+.fs-node.active {
+  background: var(--brand-navy-50);
+  outline: 1px solid var(--neutral-200);
+}
+
+.fs-caret {
+  width: 14px;
+  display: inline-block;
+  color: var(--text-secondary);
+  transition: transform 0.12s ease;
+}
+
+.fs-caret.open {
+  transform: rotate(90deg);
+}
+
+.fs-caret.placeholder {
+  opacity: 0;
+}
+
+.fs-icon {
+  width: 18px;
+  display: inline-flex;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.fs-filetype {
+  width: 42px;
+  display: inline-flex;
+  justify-content: center;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  padding: 0.15rem 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--neutral-200);
+  background: var(--neutral-50);
+  color: var(--text-secondary);
+}
+
+.fs-filetype--sql {
+  color: var(--brand-navy-800);
+  background: rgba(233, 239, 247, 0.7);
+  border-color: rgba(199, 213, 235, 0.9);
+}
+
+.fs-filetype--yml,
+.fs-filetype--yaml {
+  color: #6b4d1f;
+  background: rgba(253, 234, 196, 0.7);
+  border-color: rgba(214, 178, 110, 0.55);
+}
+
+.fs-filetype--json {
+  color: #1f4f7f;
+  background: rgba(199, 213, 235, 0.45);
+  border-color: rgba(199, 213, 235, 0.85);
+}
+
+.fs-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

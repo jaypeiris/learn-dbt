@@ -9,6 +9,7 @@ import layerChallenges from '../data/challenges/layer-challenges.json'
 import grainChallenges from '../data/challenges/grain-challenges.json'
 import testingChallenges from '../data/challenges/testing-challenges.json'
 import refactoringChallenges from '../data/challenges/refactoring-challenges.json'
+import jinjaChallenges from '../data/challenges/jinja-challenges.json'
 
 const challengeCategories: ChallengeCategory[] = [
   refChallenges as ChallengeCategory,
@@ -17,6 +18,7 @@ const challengeCategories: ChallengeCategory[] = [
   grainChallenges as ChallengeCategory,
   testingChallenges as ChallengeCategory,
   refactoringChallenges as ChallengeCategory,
+  jinjaChallenges as ChallengeCategory,
 ]
 
 /**

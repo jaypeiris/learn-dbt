@@ -1,7 +1,8 @@
 import './SqlEditor.css'
 import CodeMirror from '@uiw/react-codemirror'
 import { sql } from '@codemirror/lang-sql'
-import { EditorView } from '@codemirror/view'
+import { EditorView, Decoration, ViewPlugin, type ViewUpdate } from '@codemirror/view'
+import { RangeSetBuilder } from '@codemirror/state'
 
 type SqlEditorProps = {
   label: string
@@ -10,6 +11,42 @@ type SqlEditorProps = {
   readOnly?: boolean
   helperText?: string
 }
+
+function buildJinjaDecorations(view: EditorView) {
+  const builder = new RangeSetBuilder<Decoration>()
+
+  for (const { from, to } of view.visibleRanges) {
+    const text = view.state.doc.sliceString(from, to)
+    const regex = /\{\{[\s\S]*?\}\}|\{%\s*[\s\S]*?\s*%\}|\{#[\s\S]*?#\}/g
+    for (const match of text.matchAll(regex)) {
+      if (typeof match.index !== 'number') continue
+      const start = from + match.index
+      const end = start + match[0].length
+      builder.add(start, end, Decoration.mark({ class: 'cm-jinja' }))
+    }
+  }
+
+  return builder.finish()
+}
+
+const jinjaHighlight = ViewPlugin.fromClass(
+  class {
+    decorations = Decoration.none
+
+    constructor(view: EditorView) {
+      this.decorations = buildJinjaDecorations(view)
+    }
+
+    update(update: ViewUpdate) {
+      if (update.docChanged || update.viewportChanged) {
+        this.decorations = buildJinjaDecorations(update.view)
+      }
+    }
+  },
+  {
+    decorations: (v) => v.decorations,
+  },
+)
 
 export default function SqlEditor({ label, value, onChange, readOnly = false, helperText }: SqlEditorProps) {
   return (
@@ -23,7 +60,8 @@ export default function SqlEditor({ label, value, onChange, readOnly = false, he
         onChange={onChange}
         extensions={[
           sql(),
-          EditorView.lineWrapping
+          EditorView.lineWrapping,
+          jinjaHighlight,
         ]}
         editable={!readOnly}
         basicSetup={{

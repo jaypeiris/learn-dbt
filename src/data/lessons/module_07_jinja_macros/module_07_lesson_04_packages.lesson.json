@@ -1,0 +1,88 @@
+{
+  "id": "module-07-lesson-04-packages",
+  "title": "Module 7 Lesson 4 - Using dbt packages",
+  "summary": "Replace manual code with battle-tested macros from dbt_utils.",
+  "description": "Packages are reusable macro libraries. Instead of rewriting common utilities (surrogate keys, star selection, and metadata lookups), you can depend on a package and call its macros.",
+  "concept": "Prefer shared, well-tested patterns over bespoke one-offs.",
+  "starterState": "Manual utilities",
+  "hint": "Replace manual patterns with dbt_utils macros: surrogate_key(), get_column_values(), and star().",
+  "models": [
+    {
+      "id": "module07_lesson04_packages_playground",
+      "title": "packages_playground.sql",
+      "description": "Swap manual patterns for dbt_utils macros.",
+      "editable": true,
+      "sql": "-- Goal: rewrite these manual utilities using dbt_utils.\n\n-- 1) Manual surrogate key (replace this)\n-- md5(coalesce(cast(order_id as string), '') || '-' || coalesce(cast(customer_id as string), '')) as order_sk\n\n-- 2) Manual column list (replace with dbt_utils.get_column_values)\n-- {% set statuses = ['completed', 'refunded', 'canceled'] %}\n\n-- 3) Manual star except (replace with dbt_utils.star)\n-- select order_id, customer_id, order_date, order_total_cents from {{ ref('stg_orders') }}\n\nselect\n  order_id,\n  customer_id,\n  order_date,\n  order_total_cents\nfrom {{ ref('stg_orders') }}"
+    },
+    {
+      "id": "module07_lesson04_dbt_utils_reference",
+      "title": "dbt_utils_reference.sql (reference)",
+      "description": "Examples of common dbt_utils calls (syntax varies by version).",
+      "editable": false,
+      "sql": "-- Surrogate key\n-- {{ dbt_utils.surrogate_key(['order_id', 'customer_id']) }}\n\n-- Get column values (typically used with execute guards)\n-- {% if execute %}\n--   {% set statuses = dbt_utils.get_column_values(table=ref('stg_orders'), column='status') %}\n-- {% endif %}\n\n-- Star selection with exclusions\n-- select\n--   {{ dbt_utils.star(from=ref('stg_orders'), except=['internal_note']) }}\n-- from {{ ref('stg_orders') }}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module07_lesson04_task_surrogate_key",
+      "prompt": "Use dbt_utils.surrogate_key() instead of manual hashing.",
+      "check": {
+        "type": "contains_text",
+        "value": "dbt_utils.surrogate_key",
+        "hint": "Add something like: {{ dbt_utils.surrogate_key(['order_id', 'customer_id']) }} as order_sk"
+      }
+    },
+    {
+      "id": "module07_lesson04_task_get_column_values",
+      "prompt": "Use dbt_utils.get_column_values() to build a list dynamically.",
+      "check": {
+        "type": "contains_text",
+        "value": "dbt_utils.get_column_values",
+        "hint": "Try: {% set statuses = dbt_utils.get_column_values(table=ref('...'), column='...') %}"
+      }
+    },
+    {
+      "id": "module07_lesson04_task_star",
+      "prompt": "Use dbt_utils.star() (with exclude/except) for select * except patterns.",
+      "check": {
+        "type": "contains_text",
+        "value": "dbt_utils.star",
+        "hint": "Try: {{ dbt_utils.star(from=ref('stg_orders'), except=['internal_note']) }}"
+      }
+    }
+  ],
+  "revealSections": [
+    {
+      "title": "What packages are",
+      "body": "Packages are versioned dependencies that ship macros, models, and tests. They let you reuse proven patterns across projects."
+    },
+    {
+      "title": "Installing packages",
+      "body": "In dbt, you add packages to `packages.yml` and run `dbt deps`. This downloads and registers the package macros for use in your project."
+    },
+    {
+      "title": "Common packages",
+      "body": "Popular options include `dbt_utils`, `dbt_expectations`, and `codegen`. Start with dbt_utils for everyday helper macros."
+    },
+    {
+      "title": "When to use packages",
+      "body": "Use packages for common utilities where correctness and consistency matter more than custom flair. Keep your own macros focused on your business rules."
+    }
+  ],
+  "comparisons": [
+    {
+      "title": "Manual vs package macro",
+      "left": {
+        "label": "Manual hashing",
+        "code": "md5(coalesce(cast(order_id as string), '') || '-' || coalesce(cast(customer_id as string), '')) as order_sk"
+      },
+      "right": {
+        "label": "dbt_utils",
+        "code": "{{ dbt_utils.surrogate_key(['order_id', 'customer_id']) }} as order_sk"
+      },
+      "note": "Packages reduce boilerplate and standardize patterns."
+    }
+  ],
+  "takeaway": "Packages help you move faster and avoid re-implementing common utilities."
+}
+

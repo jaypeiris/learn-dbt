@@ -1,0 +1,198 @@
+{
+  "id": "jinja-mastery",
+  "title": "Jinja & Macros",
+  "description": "Master Jinja templating patterns and reusable macros in dbt Core.",
+  "challenges": [
+    {
+      "id": "jinja-add-variables",
+      "type": "jinja_set_variable",
+      "title": "Add variables",
+      "difficulty": "beginner",
+      "timeEstimate": "5 min",
+      "description": "Replace a hardcoded list with a Jinja variable.",
+      "scenario": "You keep rewriting the same list of columns. Store it once and reuse it.",
+      "starterSql": "select\\n  order_id,\\n  customer_id,\\n  order_date\\nfrom {{ ref('stg_orders') }}",
+      "checks": [
+        {
+          "type": "jinja_set_variable",
+          "value": "columns",
+          "hint": "Add a Jinja set statement: {% set columns = [...] %}"
+        }
+      ],
+      "explanation": "Jinja variables let you store lists and reuse them. In dbt, this reduces repetition and keeps changes localized.",
+      "hint": "Add something like: {% set columns = ['order_id', 'customer_id', 'order_date'] %}",
+      "tags": ["jinja", "variables", "maintainability"]
+    },
+    {
+      "id": "jinja-for-loop-basics",
+      "type": "jinja_for_loop",
+      "title": "For loop basics",
+      "difficulty": "beginner",
+      "timeEstimate": "6 min",
+      "description": "Use a Jinja for-loop to generate repeated SQL.",
+      "scenario": "Your SELECT list is repetitive. Generate it from a list using {% for %}.",
+      "starterSql": "{% set columns = ['order_id', 'customer_id', 'order_date'] %}\\n\\nselect\\n  order_id,\\n  customer_id,\\n  order_date\\nfrom {{ ref('stg_orders') }}",
+      "checks": [
+        {
+          "type": "jinja_for_loop",
+          "value": "col in columns",
+          "hint": "Add a for loop like: {% for col in columns %} ... {% endfor %}"
+        },
+        {
+          "type": "contains_text",
+          "value": "{% endfor %}",
+          "hint": "Close your loop with {% endfor %}"
+        }
+      ],
+      "explanation": "Loops are the workhorse of dbt templating. Combine a list variable with a loop to generate clean, consistent SQL without copy/paste.",
+      "hint": "Replace the hardcoded columns with a loop: {{ col }} inside the select list.",
+      "tags": ["jinja", "loops"]
+    },
+    {
+      "id": "jinja-loop-properties",
+      "type": "jinja_for_loop",
+      "title": "Loop properties (commas)",
+      "difficulty": "intermediate",
+      "timeEstimate": "7 min",
+      "description": "Use loop.last to format a generated select list.",
+      "scenario": "Your loop generates an extra trailing comma, causing invalid SQL. Fix it.",
+      "starterSql": "{% set columns = ['order_id', 'customer_id', 'order_date'] %}\\n\\nselect\\n{% for col in columns %}\\n  {{ col }},\\n{% endfor %}\\nfrom {{ ref('stg_orders') }}",
+      "checks": [
+        {
+          "type": "contains_text",
+          "value": "loop.last",
+          "hint": "Use loop.last (or not loop.last) to avoid trailing commas"
+        }
+      ],
+      "explanation": "Jinja exposes loop helpers like loop.last so you can format generated SQL correctly. Clean formatting is what makes dynamic SQL safe to use day-to-day.",
+      "hint": "Try: {{ col }}{% if not loop.last %},{% endif %}",
+      "tags": ["jinja", "loops", "formatting"]
+    },
+    {
+      "id": "jinja-write-simple-macro",
+      "type": "jinja_macro",
+      "title": "Write a simple macro",
+      "difficulty": "intermediate",
+      "timeEstimate": "8 min",
+      "description": "Extract duplicated logic into a macro.",
+      "scenario": "You keep repeating the same expression. Turn it into a macro and call it.",
+      "starterSql": "-- TODO: define a macro named cents_to_dollars\\n\\nselect\\n  order_id,\\n  (order_total_cents / 100.0) as order_total_dollars\\nfrom {{ ref('stg_orders') }}",
+      "checks": [
+        {
+          "type": "jinja_macro_defined",
+          "value": "cents_to_dollars",
+          "hint": "Define a macro with: {% macro cents_to_dollars(column_name) %}"
+        },
+        {
+          "type": "contains_text",
+          "value": "endmacro",
+          "hint": "Close the macro with {% endmacro %}"
+        }
+      ],
+      "explanation": "Macros let you encapsulate reusable SQL logic. This makes repeated expressions consistent and easier to update safely across models.",
+      "hint": "Define the macro above your select and call it in the select list.",
+      "tags": ["jinja", "macros", "dry"]
+    },
+    {
+      "id": "jinja-macro-with-arguments",
+      "type": "jinja_macro_args",
+      "title": "Macro with arguments",
+      "difficulty": "intermediate",
+      "timeEstimate": "9 min",
+      "description": "Add arguments to a macro and pass them when calling it.",
+      "scenario": "Your macro is hardcoded for one column. Make it accept a column name.",
+      "starterSql": "{% macro cents_to_dollars() %}\\n  (order_total_cents / 100.0)\\n{% endmacro %}\\n\\nselect\\n  order_id,\\n  {{ cents_to_dollars() }} as order_total_dollars\\nfrom {{ ref('stg_orders') }}",
+      "checks": [
+        {
+          "type": "contains_text",
+          "value": "macro cents_to_dollars(",
+          "hint": "Add a parameter in the macro signature: {% macro cents_to_dollars(column_name) %}"
+        },
+        {
+          "type": "contains_text",
+          "value": "cents_to_dollars('order_total_cents')",
+          "hint": "Call the macro with a column name: {{ cents_to_dollars('order_total_cents') }}"
+        }
+      ],
+      "explanation": "Macro parameters make your macro reusable. Passing a column name is a common pattern for expression macros.",
+      "hint": "Use column_name inside the macro body as {{ column_name }}.",
+      "tags": ["jinja", "macros", "arguments"]
+    },
+    {
+      "id": "jinja-add-execute-guard",
+      "type": "jinja_execute_guard",
+      "title": "Add an execute guard",
+      "difficulty": "intermediate",
+      "timeEstimate": "7 min",
+      "description": "Wrap run_query() inside {% if execute %} to keep parsing safe.",
+      "scenario": "Your model uses run_query() unguarded. This can break dbt parse-only commands.",
+      "starterSql": "{% set results = run_query(\"select 'US' as country\") %}\\n\\nselect 'done' as ok",
+      "checks": [
+        {
+          "type": "jinja_if_execute",
+          "value": "execute",
+          "hint": "Wrap run_query with: {% if execute %} ... {% endif %}"
+        },
+        {
+          "type": "contains_text",
+          "value": "run_query",
+          "hint": "Keep the run_query() call, but guard it"
+        }
+      ],
+      "explanation": "dbt parses models without connecting to a warehouse for some commands. The execute guard prevents runtime-only operations from running during parsing.",
+      "hint": "Put the run_query line inside an `{% if execute %}` block.",
+      "tags": ["jinja", "dbt", "execute", "run_query"]
+    },
+    {
+      "id": "jinja-use-dbt-utils",
+      "type": "jinja_package",
+      "title": "Use dbt_utils",
+      "difficulty": "intermediate",
+      "timeEstimate": "6 min",
+      "description": "Replace a manual surrogate key with a dbt_utils macro call.",
+      "scenario": "You have custom hashing logic everywhere. Prefer a shared macro from dbt_utils.",
+      "starterSql": "select\\n  md5(cast(order_id as string) || '-' || cast(customer_id as string)) as order_sk,\\n  order_id,\\n  customer_id\\nfrom {{ ref('stg_orders') }}",
+      "checks": [
+        {
+          "type": "contains_text",
+          "value": "dbt_utils.surrogate_key",
+          "hint": "Use: {{ dbt_utils.surrogate_key(['order_id','customer_id']) }}"
+        }
+      ],
+      "explanation": "Packages like dbt_utils provide standardized, battle-tested utilities. This reduces custom code and increases consistency across projects.",
+      "hint": "Swap the md5 expression for dbt_utils.surrogate_key().",
+      "tags": ["jinja", "packages", "dbt_utils"]
+    },
+    {
+      "id": "jinja-dynamic-pivot",
+      "type": "jinja_dynamic_pivot",
+      "title": "Dynamic pivot",
+      "difficulty": "advanced",
+      "timeEstimate": "12 min",
+      "description": "Make a static pivot dynamic using run_query() + a for loop (safely).",
+      "scenario": "New statuses are added frequently. You don’t want to edit your model every time.",
+      "starterSql": "select\\n  customer_id,\\n  sum(case when status = 'completed' then 1 else 0 end) as completed_orders,\\n  count(*) as total_orders\\nfrom {{ ref('stg_orders') }}\\ngroup by customer_id",
+      "checks": [
+        {
+          "type": "jinja_if_execute",
+          "value": "execute",
+          "hint": "Add an execute guard: {% if execute %}"
+        },
+        {
+          "type": "contains_text",
+          "value": "run_query",
+          "hint": "Use run_query() to fetch the list of statuses"
+        },
+        {
+          "type": "jinja_for_loop",
+          "value": "status in statuses",
+          "hint": "Loop through statuses: {% for status in statuses %}"
+        }
+      ],
+      "explanation": "Dynamic pivots follow a common pattern: fetch categories, loop to generate expressions, and guard run_query with execute so parsing stays safe.",
+      "hint": "Start by creating a statuses list inside an execute guard, then loop to generate CASE columns.",
+      "tags": ["jinja", "dynamic-sql", "pivot"]
+    }
+  ]
+}
+

@@ -31,6 +31,7 @@ export const navSections: NavSection[] = [
     defaultRoute: 'practice',
     routes: [
       { id: 'practice', label: 'Challenges', description: 'Short challenges to reinforce concepts' },
+      { id: 'simulator', label: 'Simulator', description: 'Practice dbt Core commands without setup' },
       { id: 'mistakes', label: 'Mistakes', description: 'Learn from common dbt failures' },
       { id: 'explain', label: 'Explain', description: 'Analyze any dbt model SQL' },
     ],

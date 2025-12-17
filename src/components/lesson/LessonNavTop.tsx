@@ -144,9 +144,10 @@ function formatModuleTitle(moduleId: string, _lessonTitle: string): string {
     1: 'Models & refs',
     2: 'Layering',
     3: 'Materializations',
-    4: 'Tests & docs',
+    4: 'Tests & Docs',
     5: 'Snapshots',
     6: 'Manifest',
+    7: 'Jinja & Macros'
   }
 
   const moduleName = moduleNames[number as number]

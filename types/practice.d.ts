@@ -11,9 +11,26 @@ export type ChallengeType =
   | 'attach_tests' // Add appropriate tests
   | 'split_model' // Break up a god model
   | 'fix_dependency' // Fix circular or missing dependencies
+  | 'jinja_set_variable'
+  | 'jinja_for_loop'
+  | 'jinja_macro'
+  | 'jinja_macro_args'
+  | 'jinja_execute_guard'
+  | 'jinja_package'
+  | 'jinja_dynamic_pivot'
 
 export type ChallengeCheck = {
-  type: 'includes_ref' | 'materialization' | 'mentions_column' | 'contains_text' | 'layer_structure' | 'test_count'
+  type:
+    | 'includes_ref'
+    | 'materialization'
+    | 'mentions_column'
+    | 'contains_text'
+    | 'layer_structure'
+    | 'test_count'
+    | 'jinja_macro_defined'
+    | 'jinja_for_loop'
+    | 'jinja_if_execute'
+    | 'jinja_set_variable'
   value: string | number
   hint: string
 }

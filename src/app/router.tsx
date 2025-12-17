@@ -10,8 +10,21 @@ import ManifestExplainerPage from '../pages/ManifestExplainerPage'
 import FoundationsPage from '../pages/FoundationsPage'
 import NextStepsPage from '../pages/NextStepsPage'
 import LandingPage from '../pages/LandingPage'
+import SimulatorPage from '../pages/SimulatorPage'
 
-export type RouteId = 'landing' | 'learn' | 'paths' | 'practice' | 'mistakes' | 'explain' | 'cheatsheets' | 'projects' | 'manifest' | 'foundations' | 'next'
+export type RouteId =
+  | 'landing'
+  | 'learn'
+  | 'paths'
+  | 'practice'
+  | 'simulator'
+  | 'mistakes'
+  | 'explain'
+  | 'cheatsheets'
+  | 'projects'
+  | 'manifest'
+  | 'foundations'
+  | 'next'
 
 export type RouteConfig = {
   id: RouteId
@@ -38,6 +51,12 @@ export const routes: RouteConfig[] = [
     title: 'Practice',
     blurb: 'Short challenges to reinforce concepts.',
     element: <PracticePage />,
+  },
+  {
+    id: 'simulator',
+    title: 'Simulator',
+    blurb: 'Practice dbt Core commands without setup.',
+    element: <SimulatorPage />,
   },
   {
     id: 'mistakes',
@@ -97,6 +116,7 @@ function parseHash(): RouteId {
   if (hashValue === 'learn') return 'learn'
   if (hashValue === 'paths') return 'paths'
   if (hashValue === 'practice') return 'practice'
+  if (hashValue === 'simulator') return 'simulator'
   if (hashValue === 'mistakes') return 'mistakes'
   if (hashValue === 'explain') return 'explain'
   if (hashValue === 'cheatsheets') return 'cheatsheets'

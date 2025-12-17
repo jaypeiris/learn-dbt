@@ -55,6 +55,11 @@
     "summary": "Raw \u00e2\u2020\u2019 staging \u00e2\u2020\u2019 intermediate \u00e2\u2020\u2019 mart keeps change understandable."
   },
   {
+    "id": "module-02-lesson-06-grain",
+    "title": "Module 2 Lesson 6 - Understanding grain",
+    "summary": "What does one row represent? Declare grain explicitly to prevent fanout joins and duplicated metrics."
+  },
+  {
     "id": "module-03-lesson-01-materialization-basics",
     "title": "Module 3 Lesson 1 - What a materialization is",
     "summary": "Understand that configs change what dbt creates, not the SQL."
@@ -158,5 +163,30 @@
     "id": "module-06-lesson-05-mental-model",
     "title": "Module 6 Lesson 5 - From mental model to projects",
     "summary": "Understanding the internal graph removes the mystery."
+  },
+  {
+    "id": "module-07-lesson-01-variables-loops",
+    "title": "Module 7 Lesson 1 - Jinja variables and loops",
+    "summary": "Use {% set %} and {% for %} to make SQL dynamic and maintainable"
+  },
+  {
+    "id": "module-07-lesson-02-writing-macros",
+    "title": "Module 7 Lesson 2 - Writing reusable macros",
+    "summary": "Create {% macro %} blocks to eliminate duplicated SQL logic"
+  },
+  {
+    "id": "module-07-lesson-03-builtin-functions",
+    "title": "Module 7 Lesson 3 - Built-in dbt functions",
+    "summary": "Use target, execute, and run_query() for context-aware models"
+  },
+  {
+    "id": "module-07-lesson-04-packages",
+    "title": "Module 7 Lesson 4 - Using dbt packages",
+    "summary": "Replace manual code with battle-tested macros from dbt_utils"
+  },
+  {
+    "id": "module-07-lesson-05-dynamic-sql",
+    "title": "Module 7 Lesson 5 - Dynamic SQL patterns",
+    "summary": "Combine Jinja techniques to build data-driven models that adapt automatically"
   }
 ]

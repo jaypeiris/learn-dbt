@@ -1,0 +1,75 @@
+{
+  "id": "module-02-lesson-06-grain",
+  "title": "Lesson 6 — Understanding grain",
+  "summary": "What does one row represent in this model?",
+  "description": "Grain is the most fundamental property of any data model. It answers the question: what does one row represent? A model at customer grain has one row per customer. A model at order grain has one row per order. A model at order_line grain has one row per line item within an order.",
+  "concept": "Declaring grain explicitly prevents fanout joins, duplicated metrics, and hours of debugging. When grain is unclear, nobody trusts the numbers.",
+  "starter_state": "Model with unclear grain",
+  "hint": "Add a comment declaring what one row represents, and ensure your GROUP BY matches that grain.",
+  "reveal_sections": [
+    {
+      "title": "What grain means",
+      "body": "Grain defines the level of detail in your model. One row per customer? Per order? Per order line? Per customer per day? The grain determines what you can accurately count, sum, and join."
+    },
+    {
+      "title": "Why grain matters",
+      "body": "When grain is ambiguous, you get fanout joins that inflate metrics. If you join orders (one per order) to order_lines (many per order) without being careful, your revenue doubles or triples. Declaring grain makes these issues visible before they break dashboards."
+    },
+    {
+      "title": "How to declare grain",
+      "body": "Add a comment at the top of your model: '-- Grain: one row per customer' or '-- Grain: one row per order_id, order_date'. Then ensure your GROUP BY clause matches that grain exactly. If you say one row per customer, your GROUP BY should be customer_id (and nothing else)."
+    },
+    {
+      "title": "Common grain patterns",
+      "body": "Staging models usually preserve source grain (one row per raw record). Intermediate models might change grain (joining order_lines up to orders). Marts often aggregate to business grain (one row per customer, one row per date, one row per product per month)."
+    },
+    {
+      "title": "Testing grain",
+      "body": "Use dbt tests to enforce grain. If your model should have one row per customer, add 'unique' and 'not_null' tests on customer_id. If it's one row per order_id and product_id, test uniqueness on the combination: tests: [unique_combination_of_columns: {combination_of_columns: [order_id, product_id]}]"
+    }
+  ],
+  "takeaway": "Always declare grain explicitly. One row per what? If you can't answer immediately, the model isn't clear enough.",
+  "models": [
+    {
+      "id": "module02_lesson06_unclear_grain",
+      "title": "fct_customer_orders (unclear grain)",
+      "description": "This model's grain is ambiguous. Is it one row per customer or per order?",
+      "editable": true,
+      "sql": "-- TODO: Declare grain here\n-- Grain: ???\n\nselect\n  c.customer_id,\n  c.customer_name,\n  c.signup_date,\n  o.order_id,\n  o.order_date,\n  o.total_amount\nfrom {{ ref('stg_customers') }} c\nleft join {{ ref('stg_orders') }} o\n  on c.customer_id = o.customer_id"
+    },
+    {
+      "id": "module02_lesson06_customer_grain_example",
+      "title": "Example: Customer grain (one row per customer)",
+      "description": "Aggregated to customer grain with explicit declaration",
+      "editable": false,
+      "sql": "-- Grain: one row per customer_id\n\nselect\n  customer_id,\n  customer_name,\n  signup_date,\n  count(order_id) as total_orders,\n  sum(total_amount) as lifetime_value\nfrom {{ ref('stg_customers') }} c\nleft join {{ ref('stg_orders') }} o\n  using (customer_id)\ngroup by customer_id, customer_name, signup_date"
+    },
+    {
+      "id": "module02_lesson06_order_grain_example",
+      "title": "Example: Order grain (one row per order)",
+      "description": "One row per order with customer details denormalized",
+      "editable": false,
+      "sql": "-- Grain: one row per order_id\n\nselect\n  o.order_id,\n  o.order_date,\n  o.total_amount,\n  c.customer_id,\n  c.customer_name,\n  c.signup_date\nfrom {{ ref('stg_orders') }} o\nleft join {{ ref('stg_customers') }} c\n  on o.customer_id = c.customer_id"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "module02_lesson06_declare_grain",
+      "prompt": "Add a comment declaring the grain of this model (one row per customer or per order).",
+      "check": {
+        "type": "contains_text",
+        "value": "-- Grain:",
+        "hint": "Start with a comment: -- Grain: one row per ..."
+      }
+    },
+    {
+      "id": "module02_lesson06_match_groupby",
+      "prompt": "If you chose customer grain, add a GROUP BY to match. If order grain, the current query is already correct.",
+      "check": {
+        "type": "contains_text",
+        "value": "group by",
+        "hint": "Customer grain requires aggregating orders per customer with GROUP BY customer_id"
+      }
+    }
+  ]
+}

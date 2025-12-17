@@ -202,6 +202,14 @@ function evaluateCheck(check: ChallengeCheck, parsed: ReturnType<typeof parseSql
     case 'contains_text':
       if (typeof value !== 'string') return false
       return sql.toLowerCase().includes(value.toLowerCase())
+    case 'jinja_macro_defined':
+      return /\{%\s*[-]?\s*macro\s+\w+/.test(sql)
+    case 'jinja_for_loop':
+      return /\{%\s*for\s+\w+\s+in\s+/.test(sql)
+    case 'jinja_if_execute':
+      return /\{%\s*if\s+execute\s*%\}/.test(sql)
+    case 'jinja_set_variable':
+      return /\{%\s*set\s+\w+\s*=/.test(sql)
     default:
       return false
   }
