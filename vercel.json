@@ -1,7 +1,17 @@
 {
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/learn-dbt/"
+    }
+  ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/learn-dbt/assets/:match*",
+      "destination": "/assets/:match*"
+    },
+    {
+      "source": "/learn-dbt/:match*",
       "destination": "/index.html"
     }
   ]
