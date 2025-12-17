@@ -128,13 +128,29 @@ function parseHash(): RouteId {
 }
 
 export function useSimpleRouter() {
-  const [currentRoute, setCurrentRoute] = useState<RouteId>(() => parseHash())
+  // Initialize hash if missing on first load
+  const initializeHash = () => {
+    const hash = window.location.hash
+    if (!hash || hash === '' || hash === '#') {
+      // Set hash to landing page
+      if (window.history.replaceState) {
+        window.history.replaceState(null, '', '#/')
+      } else {
+        window.location.hash = '#/'
+      }
+    }
+    return parseHash()
+  }
+
+  const [currentRoute, setCurrentRoute] = useState<RouteId>(initializeHash)
 
   useEffect(() => {
     const handleHashChange = () => {
       setCurrentRoute(parseHash())
     }
     window.addEventListener('hashchange', handleHashChange)
+    // Also check on load in case hash was set before React mounted
+    setCurrentRoute(parseHash())
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
