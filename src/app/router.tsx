@@ -112,7 +112,7 @@ function parseHash(): RouteId {
   }
   // Remove # and leading slash
   const hashValue = hash.replace(/^#\/?/, '')
-  if (!hashValue || hashValue === '') return 'landing'
+  if (!hashValue || hashValue === '' || hashValue === 'landing') return 'landing'
   if (hashValue === 'learn') return 'learn'
   if (hashValue === 'paths') return 'paths'
   if (hashValue === 'practice') return 'practice'
@@ -156,7 +156,12 @@ export function useSimpleRouter() {
 
   const navigate = (route: RouteId) => {
     if (route === currentRoute) return
-    window.location.hash = `/${route}`
+    // Landing page uses #/ instead of #/landing
+    if (route === 'landing') {
+      window.location.hash = '#/'
+    } else {
+      window.location.hash = `/${route}`
+    }
     setCurrentRoute(route)
   }
 

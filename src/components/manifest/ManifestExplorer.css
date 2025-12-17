@@ -48,6 +48,11 @@
   color: #f6fff8;
 }
 
+.manifest-node.active strong,
+.manifest-node.active span {
+  color: #f6fff8;
+}
+
 .manifest-explorer__details {
   flex: 1;
   min-width: 260px;

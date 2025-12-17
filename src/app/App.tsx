@@ -37,10 +37,15 @@ function App() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div className="brand">
+        <button 
+          type="button"
+          className="brand"
+          onClick={() => navigate('landing')}
+          aria-label="Go to landing page"
+        >
           <p className="brand-title">dbt learning studio</p>
           <p className="brand-subtitle">Concept-first practice space</p>
-        </div>
+        </button>
         <div className="header-actions">
           <SearchBar onNavigate={handleSearchNavigation} />
           <div className="quick-nav" aria-label="Quick access">
