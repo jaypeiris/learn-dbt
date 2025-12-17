@@ -1,9 +1,16 @@
 import { useState } from 'react'
 import './CheatSheetsPage.css'
 
-type CheatSheetId = 'layers' | 'grain' | 'materialization' | 'testing' | 'jinja' | 'commands' | 'naming' | 'incremental'
+type CheatSheetId = 'layers' | 'grain' | 'materialization' | 'testing' | 'jinja' | 'commands' | 'github' | 'naming' | 'incremental'
 
 const CHEAT_SHEETS = [
+  {
+    id: 'github' as CheatSheetId,
+    title: 'Git & GitHub Commands',
+    subtitle: 'Branch, commit, PR',
+    description: 'A practical workflow cheat sheet for day-to-day work',
+    icon: 'git',
+  },
   {
     id: 'layers' as CheatSheetId,
     title: 'Layering Cheat Sheet',
@@ -119,6 +126,7 @@ function CheatSheetDetail({ id, onBack }: { id: CheatSheetId; onBack: () => void
         {id === 'testing' && <TestingSheet />}
         {id === 'jinja' && <JinjaSheet />}
         {id === 'commands' && <CommandsSheet />}
+        {id === 'github' && <GitHubSheet />}
         {id === 'naming' && <NamingSheet />}
         {id === 'incremental' && <IncrementalSheet />}
       </div>
@@ -868,6 +876,168 @@ function CommandsSheet() {
             <p><code>dbt build --select state:modified+</code> — Build + test changed models</p>
           </div>
         </div>
+      </section>
+    </div>
+  )
+}
+
+function GitHubSheet() {
+  return (
+    <div className="sheet">
+      <header className="sheet-header">
+        <h1>Git &amp; GitHub Commands</h1>
+        <p className="sheet-tagline">Branch, commit, PR — confidently</p>
+      </header>
+
+      <section className="sheet-section">
+        <h2>Everyday Workflow</h2>
+        <pre className="code-block"><code>{`# 1) Get latest
+git switch main
+git pull
+
+# 2) Make a branch
+git switch -c feat/my-change
+
+# 3) Work + save
+git status
+git add -A
+git commit -m "Explain what changed"
+
+# 4) Publish + open PR
+git push -u origin feat/my-change`}</code></pre>
+        <ul className="checklist-list">
+          <li>Keep commits small and descriptive.</li>
+          <li>Push early so your work is backed up and visible.</li>
+          <li>Prefer <code>git revert</code> over rewriting history on shared branches.</li>
+        </ul>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Inspect What Changed</h2>
+        <div className="patterns-grid">
+          <div className="pattern-box">
+            <h4>Status</h4>
+            <p>What’s staged vs unstaged?</p>
+            <code>git status</code>
+          </div>
+          <div className="pattern-box">
+            <h4>Diff</h4>
+            <p>See edits (unstaged / staged)</p>
+            <code>git diff</code>
+            <code>git diff --staged</code>
+          </div>
+          <div className="pattern-box">
+            <h4>Log</h4>
+            <p>Readable history</p>
+            <code>git log --oneline --decorate --graph --all</code>
+          </div>
+          <div className="pattern-box">
+            <h4>Show</h4>
+            <p>Inspect a commit</p>
+            <code>git show &lt;sha&gt;</code>
+          </div>
+        </div>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Undo (Safely)</h2>
+        <table className="decision-table">
+          <thead>
+            <tr>
+              <th>Goal</th>
+              <th>Command</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Unstage a file</td>
+              <td><code>git restore --staged path/to/file</code></td>
+              <td>Keeps your working copy changes.</td>
+            </tr>
+            <tr>
+              <td>Discard local edits</td>
+              <td><code>git restore path/to/file</code></td>
+              <td>Throws away changes.</td>
+            </tr>
+            <tr>
+              <td>Edit last commit message</td>
+              <td><code>git commit --amend</code></td>
+              <td>Avoid amending after pushing (unless you force-push intentionally).</td>
+            </tr>
+            <tr>
+              <td>Undo a pushed commit</td>
+              <td><code>git revert &lt;sha&gt;</code></td>
+              <td>Creates a new commit that reverses the change (safe for shared branches).</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Branching &amp; Sync</h2>
+        <table className="decision-table">
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>Command</th>
+              <th>Tip</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Create + switch branch</td>
+              <td><code>git switch -c feat/name</code></td>
+              <td>Use short, meaningful names.</td>
+            </tr>
+            <tr>
+              <td>Update from main (merge)</td>
+              <td><code>git fetch</code><br /><code>git merge origin/main</code></td>
+              <td>Simple and safe.</td>
+            </tr>
+            <tr>
+              <td>Update from main (rebase)</td>
+              <td><code>git fetch</code><br /><code>git rebase origin/main</code></td>
+              <td>Clean history; resolve conflicts carefully.</td>
+            </tr>
+            <tr>
+              <td>Delete branch (local)</td>
+              <td><code>git branch -d feat/name</code></td>
+              <td>Use <code>-D</code> only if needed.</td>
+            </tr>
+            <tr>
+              <td>Delete branch (remote)</td>
+              <td><code>git push origin --delete feat/name</code></td>
+              <td>Clean up after merge.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className="sheet-section">
+        <h2>Stash (Pause Work)</h2>
+        <pre className="code-block"><code>{`# Save away uncommitted changes
+git stash push -m "WIP: description"
+
+# See stashes
+git stash list
+
+# Re-apply the latest stash (keeps it)
+git stash apply
+
+# Apply and remove the latest stash
+git stash pop`}</code></pre>
+      </section>
+
+      <section className="sheet-section">
+        <h2>First-Time Setup (New Machine)</h2>
+        <pre className="code-block"><code>{`# Identity
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+
+# Helpful defaults
+git config --global init.defaultBranch main
+git config --global pull.rebase false`}</code></pre>
       </section>
     </div>
   )
