@@ -12,8 +12,8 @@
       "destination": "/assets/:match*"
     },
     {
-      "source": "/learn_dbt/vite.svg",
-      "destination": "/vite.svg"
+      "source": "/learn_dbt/favicon.ico",
+      "destination": "/favicon.ico"
     },
     {
       "source": "/learn_dbt/index.html",
